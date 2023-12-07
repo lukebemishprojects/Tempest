@@ -14,7 +14,7 @@ autoservice = "1.1.1"
 
 architectury_loom = "1.4.367"
 
-jetbrains_annotations = "24.0.1"
+jetbrains_annotations = "24.1.0"
 
 minotaur = "2.8.3"
 
