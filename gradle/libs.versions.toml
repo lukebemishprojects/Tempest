@@ -1,0 +1,41 @@
+[versions]
+minecraft = "1.20.1"
+parchment_minecraft = "1.20.1"
+parchment_mappings = "2023.08.20"
+
+forge = "1.20.1-47.2.17"
+
+fabric_loader = "0.14.24"
+#fabric_api = "0.90.4+1.20.2"
+
+mdg_plugin = "1.4.3"
+mdg_dsl = "1.5.1"
+autoservice = "1.1.1"
+
+architectury_loom = "1.4.367"
+
+jetbrains_annotations = "24.0.1"
+
+minotaur = "2.8.3"
+
+managedversioning = "1.2.2"
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+
+fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
+#fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
+
+forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
+
+jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
+
+autoservice = { module = "com.google.auto.service:auto-service", version.ref = "autoservice" }
+
+[plugins]
+
+managedversioning = { id = "dev.lukebemish.managedversioning", version.ref = "managedversioning" }
+mdg_plugin = { id = "org.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
+architectury_loom = { id = "dev.architectury.loom", version.ref = "architectury_loom" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
+curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.16"}

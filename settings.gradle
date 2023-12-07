@@ -1,0 +1,38 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+
+        maven {
+            name = 'NeoForged'
+            url = 'https://maven.neoforged.net/'
+        }
+
+        maven {
+            name = "Luke's Maven"
+            url = 'https://maven.lukebemish.dev/releases'
+        }
+
+        maven {
+            name = 'ParchmentMC'
+            url = 'https://maven.parchmentmc.org'
+        }
+
+        maven {
+            name = 'Architectury'
+            url "https://maven.architectury.dev/"
+        }
+
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.6.0'
+}
+
+rootProject.name = 'tempest'
+include("common", "forge")

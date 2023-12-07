@@ -1,0 +1,106 @@
+plugins {
+    alias libs.plugins.mdg.plugin
+    alias libs.plugins.managedversioning
+    alias libs.plugins.architectury.loom apply false
+}
+
+managedVersioning {
+    versionFile.set rootProject.file('version.properties')
+    metadataVersion.set libs.versions.minecraft
+    versionPRs()
+    versionSnapshots()
+
+    gitHubActions {
+        snapshot {
+            prettyName.set 'Snapshot'
+            workflowDispatch.set(true)
+            onBranches.add '1.*'
+            gradleJob {
+                name.set 'build'
+                gradlew 'Build', 'build'
+                gradlew 'Publish', 'publish'
+                mavenSnapshot('github')
+            }
+        }
+        release {
+            prettyName.set 'Release'
+            workflowDispatch.set(true)
+            gradleJob {
+                name.set 'build'
+                step {
+                    setupGitUser()
+                }
+                gradlew 'tagRelease'
+                gradlew 'Build', 'build'
+                readOnly.set false
+                gradlew 'Publish', 'publish', 'modrinth', 'curseforge'
+                mavenRelease('github')
+                modPublishing()
+                step {
+                    run.set 'git push && git push --tags'
+                }
+            }
+        }
+        build_pr {
+            prettyName.set 'Build PR'
+            pullRequest.set(true)
+            gradleJob {
+                name.set 'build'
+                gradlew 'Build', 'build'
+                gradlew 'Publish', 'publish'
+                pullRequestArtifact()
+            }
+        }
+        publish_pr {
+            prettyName.set 'Publish PR'
+            publishPullRequestAction(
+                'github',
+                'dev/lukebemish/tempest/tempest-*',
+                'Build PR'
+            )
+        }
+    }
+}
+
+managedVersioning.apply()
+
+println "Building: $version"
+
+configurations {
+    license {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    add 'license', file("LICENSE")
+}
+
+modsDotGroovy {
+    dslVersion = libs.versions.mdg.dsl.get()
+    platform 'multiloader'
+    multiloader {
+        forge = [project(':forge')]
+        fabric = []
+        quilt = []
+    }
+}
+
+subprojects { p ->
+    apply plugin: 'maven-publish'
+    apply plugin: 'java-library'
+
+    jar {
+        manifest {
+            attributes([
+                'Implementation-Commit-Time': managedVersioning.timestamp.get(),
+                'Implementation-Commit': managedVersioning.hash.get()
+            ])
+        }
+    }
+
+    managedVersioning.publishing.mavenPulLRequest(publishing)
+    managedVersioning.publishing.mavenSnapshot(publishing)
+    managedVersioning.publishing.mavenRelease(publishing)
+}
