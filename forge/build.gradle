@@ -5,6 +5,23 @@ plugins {
     alias libs.plugins.architectury.loom
 }
 
+loom {
+    mixin {
+        defaultRefmapName.set "tempest.refmap.json"
+    }
+    runs {
+        client {
+            ideConfigGenerated(true)
+        }
+        server {
+            ideConfigGenerated(true)
+        }
+    }
+    forge {
+        mixinConfig "mixin.tempest.json", "mixin.forge.tempest.json"
+    }
+}
+
 repositories {
     maven {
         name = 'MinecraftForge'
@@ -22,6 +39,11 @@ dependencies {
 
     compileOnly libs.autoservice
     annotationProcessor libs.autoservice
+
+    implementation libs.mixinextras.common
+    annotationProcessor libs.mixinextras.common
+    implementation libs.mixinextras.forge
+    include libs.mixinextras.forge
 }
 
 // Publishing

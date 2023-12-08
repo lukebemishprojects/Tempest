@@ -20,6 +20,8 @@ minotaur = "2.8.3"
 
 managedversioning = "1.2.2"
 
+mixinextras = "0.3.1"
+
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 
@@ -31,6 +33,9 @@ forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
 
 autoservice = { module = "com.google.auto.service:auto-service", version.ref = "autoservice" }
+
+mixinextras_common = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinextras" }
+mixinextras_forge = { module = "io.github.llamalad7:mixinextras-forge", version.ref = "mixinextras" }
 
 [plugins]
 

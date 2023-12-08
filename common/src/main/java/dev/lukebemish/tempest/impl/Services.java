@@ -1,6 +1,6 @@
 package dev.lukebemish.tempest.impl;
 
-import dev.lukebemish.tempest.impl.data.WeatherChunkData;
+import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.ServiceLoader;

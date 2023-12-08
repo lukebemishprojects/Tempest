@@ -1,4 +1,4 @@
-package dev.lukebemish.tempest.impl.data;
+package dev.lukebemish.tempest.impl.data.world;
 
 import net.minecraft.nbt.CompoundTag;
 
@@ -42,7 +42,11 @@ public class WeatherData {
         return (byte) (data & 0xF);
     }
 
+    int data() {
+        return data;
+    }
+
     public boolean boring() {
-        return data != 0;
+        return data == 0;
     }
 }

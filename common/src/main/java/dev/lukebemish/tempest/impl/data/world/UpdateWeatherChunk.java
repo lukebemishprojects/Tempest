@@ -1,7 +1,9 @@
-package dev.lukebemish.tempest.impl.data;
+package dev.lukebemish.tempest.impl.data.world;
 
+import dev.lukebemish.tempest.impl.Services;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 public final class UpdateWeatherChunk {
     private final int level;
@@ -20,7 +22,7 @@ public final class UpdateWeatherChunk {
     }
 
     public void encoder(FriendlyByteBuf buffer) {
-        buffer.writeInt(level);
+        buffer.writeVarInt(level);
         buffer.writeLong(chunkPos.toLong());
         buffer.writeInt(posData.length);
         for (int i = 0; i < posData.length; i++) {
@@ -30,7 +32,7 @@ public final class UpdateWeatherChunk {
     }
 
     public static UpdateWeatherChunk decoder(FriendlyByteBuf buffer) {
-        int level = buffer.readInt();
+        int level = buffer.readVarInt();
         ChunkPos chunkPos = new ChunkPos(buffer.readLong());
         int l = buffer.readInt();
         int[] posData = new int[l];
@@ -40,5 +42,11 @@ public final class UpdateWeatherChunk {
             weatherData[i] = buffer.readInt();
         }
         return new UpdateWeatherChunk(level, chunkPos, posData, weatherData);
+    }
+
+    public interface Sender {
+        Sender SENDER = Services.load(Sender.class);
+
+        void send(UpdateWeatherChunk packet, LevelChunk chunk);
     }
 }

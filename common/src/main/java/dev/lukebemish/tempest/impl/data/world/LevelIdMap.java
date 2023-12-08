@@ -1,4 +1,4 @@
-package dev.lukebemish.tempest.impl.data;
+package dev.lukebemish.tempest.impl.data.world;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;

@@ -1,7 +1,9 @@
-package dev.lukebemish.tempest.impl;
+package dev.lukebemish.tempest.impl.forge;
 
 import com.google.auto.service.AutoService;
-import dev.lukebemish.tempest.impl.data.WeatherChunkData;
+import dev.lukebemish.tempest.impl.Constants;
+import dev.lukebemish.tempest.impl.Services;
+import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;

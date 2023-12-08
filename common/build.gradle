@@ -32,6 +32,8 @@ dependencies {
     }
     minecraft libs.minecraft
     modImplementation libs.fabric.loader
+
+    implementation libs.mixinextras.common
 }
 
 artifacts {

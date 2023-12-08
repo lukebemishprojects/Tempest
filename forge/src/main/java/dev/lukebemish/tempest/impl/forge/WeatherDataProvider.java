@@ -1,6 +1,6 @@
-package dev.lukebemish.tempest.impl;
+package dev.lukebemish.tempest.impl.forge;
 
-import dev.lukebemish.tempest.impl.data.WeatherChunkData;
+import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.chunk.LevelChunk;

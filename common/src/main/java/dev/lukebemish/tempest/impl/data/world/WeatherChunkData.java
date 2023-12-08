@@ -1,27 +1,27 @@
-package dev.lukebemish.tempest.impl.data;
+package dev.lukebemish.tempest.impl.data.world;
 
-import dev.lukebemish.tempest.impl.Constants;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
 
 public class WeatherChunkData {
-    private static final String DATA_NAME = Constants.id("weather_status").toString();
-
     final Int2ObjectMap<WeatherData> data = new Int2ObjectOpenHashMap<>();
 
     private final LevelChunk chunk;
     private final IntFunction<WeatherData> factory = key -> new WeatherData(this, key);
 
     private final Int2IntMap updateQueue = new Int2IntOpenHashMap();
+    private boolean dirty = false;
 
     public WeatherChunkData(LevelChunk chunk) {
         this.chunk = chunk;
@@ -30,25 +30,43 @@ public class WeatherChunkData {
     void update(int pos, int data) {
         synchronized (updateQueue) {
             updateQueue.put(pos, data);
+            dirty = true;
         }
     }
 
-    public @Nullable UpdateWeatherChunk update() {
+    public void update() {
+        if (this.dirty) {
+            int[] posData;
+            int[] weatherData;
+            synchronized (updateQueue) {
+                posData = new int[updateQueue.size()];
+                weatherData = new int[updateQueue.size()];
+                int i = 0;
+                for (Int2IntMap.Entry entry : updateQueue.int2IntEntrySet()) {
+                    posData[i] = entry.getIntKey();
+                    weatherData[i] = entry.getIntValue();
+                    i++;
+                }
+                updateQueue.clear();
+                this.dirty = false;
+            }
+            var packet = new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData);
+            UpdateWeatherChunk.Sender.SENDER.send(packet, chunk);
+        }
+    }
+
+    public UpdateWeatherChunk full() {
         int[] posData;
         int[] weatherData;
-        synchronized (updateQueue) {
-            if (updateQueue.isEmpty()) {
-                return null;
-            }
-            posData = new int[updateQueue.size()];
-            weatherData = new int[updateQueue.size()];
-            int i = 0;
-            for (Int2IntMap.Entry entry : updateQueue.int2IntEntrySet()) {
-                posData[i] = entry.getIntKey();
-                weatherData[i] = entry.getIntValue();
-                i++;
-            }
-            updateQueue.clear();
+        var entryList = new ArrayList<>(data.int2ObjectEntrySet());
+        int size = entryList.size();
+        posData = new int[size];
+        weatherData = new int[size];
+        int i = 0;
+        for (Int2ObjectMap.Entry<WeatherData> entry : entryList) {
+            posData[i] = entry.getIntKey();
+            weatherData[i] = entry.getValue().data();
+            i++;
         }
         return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData);
     }
