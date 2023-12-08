@@ -6,7 +6,9 @@ import dev.lukebemish.tempest.impl.data.AttachedWeatherMapReloadListener;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.level.ChunkWatchEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.PacketDistributor;
@@ -23,6 +25,8 @@ public final class ModEntrypoint {
         MinecraftForge.EVENT_BUS.addGenericListener(LevelChunk.class, WeatherDataProvider::attachCapabilities);
         MinecraftForge.EVENT_BUS.addListener(this::onChunkSend);
         MinecraftForge.EVENT_BUS.addListener(this::addReloadListener);
+        MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
+        MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
 
         ModNetworking.setup(modBus);
     }
@@ -40,5 +44,15 @@ public final class ModEntrypoint {
 
     private void addReloadListener(AddReloadListenerEvent event) {
         event.addListener(new AttachedWeatherMapReloadListener());
+    }
+
+    private void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null) {
+            AttachedWeatherMapReloadListener.applyToServer(event.getPlayerList().getServer());
+        }
+    }
+
+    private void onServerStarting(ServerStartingEvent event) {
+        AttachedWeatherMapReloadListener.applyToServer(event.getServer());
     }
 }

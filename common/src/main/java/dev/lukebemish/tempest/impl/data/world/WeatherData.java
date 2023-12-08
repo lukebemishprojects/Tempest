@@ -33,13 +33,13 @@ public class WeatherData {
         }
     }
 
-    public void blackIce(byte blackIce) {
+    public void blackIce(int blackIce) {
         this.data = (data & (~0xF)) | (blackIce & 0xF);
         update();
     }
 
-    public byte blackIce() {
-        return (byte) (data & 0xF);
+    public int blackIce() {
+        return data & 0xF;
     }
 
     int data() {

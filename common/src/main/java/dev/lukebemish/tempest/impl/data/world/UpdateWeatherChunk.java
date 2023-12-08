@@ -11,8 +11,17 @@ public final class UpdateWeatherChunk {
     private final int[] posData;
     private final int[] weatherData;
 
-    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData) {
+    private final float precipitation;
+    private final float temperature;
+    private final float windSpeed;
+    private final float windDirection;
+
+    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float precipitation, float temperature, float windSpeed, float windDirection) {
         this.level = level;
+        this.precipitation = precipitation;
+        this.temperature = temperature;
+        this.windSpeed = windSpeed;
+        this.windDirection = windDirection;
         if (posData.length != weatherData.length) {
             throw new IllegalArgumentException("posData and weatherData must be the same length");
         }
@@ -22,6 +31,10 @@ public final class UpdateWeatherChunk {
     }
 
     public void encoder(FriendlyByteBuf buffer) {
+        buffer.writeFloat(precipitation);
+        buffer.writeFloat(temperature);
+        buffer.writeFloat(windSpeed);
+        buffer.writeFloat(windDirection);
         buffer.writeVarInt(level);
         buffer.writeLong(chunkPos.toLong());
         buffer.writeInt(posData.length);
@@ -32,6 +45,10 @@ public final class UpdateWeatherChunk {
     }
 
     public static UpdateWeatherChunk decoder(FriendlyByteBuf buffer) {
+        float precipitation = buffer.readFloat();
+        float temperature = buffer.readFloat();
+        float windSpeed = buffer.readFloat();
+        float windDirection = buffer.readFloat();
         int level = buffer.readVarInt();
         ChunkPos chunkPos = new ChunkPos(buffer.readLong());
         int l = buffer.readInt();
@@ -41,7 +58,7 @@ public final class UpdateWeatherChunk {
             posData[i] = buffer.readInt();
             weatherData[i] = buffer.readInt();
         }
-        return new UpdateWeatherChunk(level, chunkPos, posData, weatherData);
+        return new UpdateWeatherChunk(level, chunkPos, posData, weatherData, precipitation, temperature, windSpeed, windDirection);
     }
 
     public interface Sender {

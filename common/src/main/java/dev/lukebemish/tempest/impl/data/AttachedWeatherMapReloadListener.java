@@ -6,6 +6,7 @@ import dev.lukebemish.tempest.impl.Constants;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -59,5 +60,18 @@ public class AttachedWeatherMapReloadListener extends SimplePreparableReloadList
         WEATHER_MAPS.clear();
         WEATHER_MAPS.putAll(object);
         Constants.LOGGER.info("Loaded weather noise maps for {} levels", object.size());
+    }
+
+    public static void applyToServer(MinecraftServer server) {
+        for (var entry : WEATHER_MAPS.entrySet()) {
+            var level = server.getLevel(entry.getKey());
+            if (level == null) {
+                Constants.LOGGER.error("Failed to apply noise map for non-existent level {}", entry.getKey());
+                continue;
+            }
+            var container = (WeatherContainer) level;
+            WeatherMapData.Built data = WeatherMapData.Built.build(entry.getValue(), level);
+            container.tempest$weatherMap(data);
+        }
     }
 }

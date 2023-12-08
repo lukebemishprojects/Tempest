@@ -42,9 +42,10 @@ public class NoisyWeatherMap implements WeatherMapData.WeatherMap {
         noise = NormalNoise.create(new LegacyRandomSource(seed), parameters);
     }
 
-    public double query(int x, int z, int gameTime) {
-        int relativeTime = gameTime / rate;
-        return Mth.clamp(noise.getValue(x, relativeTime, z), -1, 1);
+    @Override
+    public float query(int x, int z, long gameTime) {
+        long relativeTime = gameTime / rate;
+        return Mth.clamp((float) noise.getValue(x, relativeTime, z), -1, 1);
     }
 
     public static void register() {

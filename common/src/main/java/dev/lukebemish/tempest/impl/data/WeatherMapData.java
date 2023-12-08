@@ -27,7 +27,7 @@ public record WeatherMapData(
     ).apply(i, WeatherMapData::new));
 
     public interface WeatherMap {
-        double query(int x, int z, int gameTime);
+        float query(int x, int z, long gameTime);
 
         interface Provider {
             Map<ResourceLocation, Codec<? extends Provider>> PROVIDERS = new HashMap<>();
@@ -35,6 +35,22 @@ public record WeatherMapData(
 
             ResourceLocation id();
             WeatherMap build(ServerLevel level);
+        }
+    }
+
+    public record Built(
+        WeatherMap precipitation,
+        WeatherMap temperature,
+        WeatherMap windSpeed,
+        WeatherMap windDirection
+    ) {
+        static Built build(WeatherMapData data, ServerLevel level) {
+            return new Built(
+                data.precipitation().build(level),
+                data.temperature().build(level),
+                data.windSpeed().build(level),
+                data.windDirection().build(level)
+            );
         }
     }
 }
