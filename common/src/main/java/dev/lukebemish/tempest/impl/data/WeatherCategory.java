@@ -1,10 +1,13 @@
 package dev.lukebemish.tempest.impl.data;
 
+import dev.lukebemish.tempest.impl.Constants;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 public enum WeatherCategory {
     SNOW(new ResourceLocation("textures/environment/snow.png"), false, 1.0f),
-    RAIN(new ResourceLocation("textures/environment/rain.png"), true, 0.2f);
+    RAIN(new ResourceLocation("textures/environment/rain.png"), true, 0.2f),
+    SLEET(Constants.id("textures/environment/sleet.png"), true, 0.5f);
 
     public final ResourceLocation location;
     public final boolean fastFalling;
@@ -26,10 +29,10 @@ public enum WeatherCategory {
 
         public WeatherStatus(WeatherCategory category, float intensity, float windSpeed, float windDirection) {
             this.category = category;
-            this.intensity = intensity;
+            this.intensity = Mth.sqrt(intensity);
             this.swirl = (1 - windSpeed * windSpeed) * this.category.swirlMult;
-            this.windX = (float) Math.cos(windDirection / (2 * Math.PI));
-            this.windZ = (float) Math.sin(windDirection / (2 * Math.PI));
+            this.windX = (float) Math.cos(windDirection * Math.PI);
+            this.windZ = (float) Math.sin(windDirection / Math.PI);
             this.speed = windSpeed;
         }
     }

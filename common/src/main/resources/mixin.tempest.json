@@ -11,7 +11,9 @@
   "client": [
     "client.DispatchRenderChunkAccessor",
     "client.RenderChunkRegionMixin",
-    "client.LevelRendererMixin"
+    "client.LevelRendererMixin",
+    "client.FogRendererMixin",
+    "client.ClientLevelMixin"
   ],
   "server": [],
   "injectors": {
