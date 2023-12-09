@@ -227,14 +227,15 @@ public class WeatherChunkData {
                     }
                 }
             } else {
-                if (precipitation(toFreeze) > 0f && precipitation(toFreeze) < 0.5f && temperature(toFreeze) > -0.3) {
+                float precip = precipitation(toFreeze);
+                float temp = temperature(toFreeze);
+                if (isSleeting(temp, precip)) {
                     var data = query(toFreeze);
                     int current = data.blackIce();
                     if (current < 15) {
                         data.blackIce(current + 2);
                     }
-                }
-                if (temperature(toFreeze) < -0.5 || precipitation(toFreeze) > 0.5f) {
+                } else if (isSnowing(temp, precip)) {
                     var toSnow = toFreeze.above();
                     var state = level.getBlockState(toSnow);
                     if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
@@ -254,6 +255,14 @@ public class WeatherChunkData {
                 }
             }
         }
+    }
+
+    private static boolean isSnowing(float temp, float precip) {
+        return (temp < -0.6) || (temp < -0.1 && precip > 0.7f);
+    }
+
+    private static boolean isSleeting(float temp, float precip) {
+        return temp < 0 && !isSnowing(temp, precip);
     }
 
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
@@ -323,9 +332,9 @@ public class WeatherChunkData {
         if (precipitation(pos) > 0f) {
             WeatherCategory category;
             float temp = temperature(pos);
-            if (temp < -0.5 || (temp < 0 && precip > 0.5f)) {
+            if (isSnowing(temp, precip)) {
                 category = WeatherCategory.SNOW;
-            } else if (temp < 0) {
+            } else if (isSleeting(temp, precip)) {
                 category = WeatherCategory.SLEET;
             } else {
                 category = WeatherCategory.RAIN;
