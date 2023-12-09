@@ -133,7 +133,17 @@ public class WeatherChunkData {
 
         if (level.random.nextInt(16) == 0) {
             long gameTime = chunk.getLevel().getGameTime();
+
+            var centerPos = new BlockPos(x + 8, 0, z + 8);
+            var biome = level.getBiome(centerPos).value();
             temperature = weatherMap.temperature().query(x, z, gameTime);
+
+            if (!biome.warmEnoughToRain(centerPos)) {
+                temperature -= 0.85f;
+            } else if (biome.getBaseTemperature() > 1.5f) {
+                temperature += 0.85f;
+            }
+
             precipitation = weatherMap.precipitation().query(x, z, gameTime);
             windSpeed = weatherMap.windSpeed().query(x, z, gameTime);
             windDirection = weatherMap.windDirection().query(x, z, gameTime);
@@ -156,22 +166,27 @@ public class WeatherChunkData {
             }
         }
 
-        BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, level.getBlockRandomPos(x, 0, z, 15)).below();
-        float localTemperature = temperature;
-        if (!level.getBiome(waterySurface).value().warmEnoughToRain(waterySurface)) {
-            localTemperature -= 0.85f;
-        }
-        if (localTemperature < -0.25f) {
-            // add new black ice or ice
-            tryFreezeBlock(level, waterySurface);
-        }
-
-        if (localTemperature > 0) {
-            // melt black ice or ice
-            tryMeltBlock(level, waterySurface);
+        if (meltAndFreeze(level, x, z)) {
+            meltAndFreeze(level, x, z);
         }
 
         this.update();
+    }
+
+    private boolean meltAndFreeze(ServerLevel level, int x, int z) {
+        BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, level.getBlockRandomPos(x, 0, z, 15)).below();
+        if (temperature < -0.25f) {
+            // add new black ice or ice
+            tryFreezeBlock(level, waterySurface);
+            return temperature < -0.5f;
+        }
+
+        if (temperature > 0) {
+            // melt black ice or ice
+            tryMeltBlock(level, waterySurface);
+            return temperature > 0.5f;
+        }
+        return false;
     }
 
     private void tryFreezeBlock(ServerLevel level, BlockPos toFreeze) {
