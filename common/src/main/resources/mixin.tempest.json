@@ -8,7 +8,10 @@
     "PlayerMixin",
     "ServerLevelMixin"
   ],
-  "client": [],
+  "client": [
+    "client.DispatchRenderChunkAccessor",
+    "client.RenderChunkRegionMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1

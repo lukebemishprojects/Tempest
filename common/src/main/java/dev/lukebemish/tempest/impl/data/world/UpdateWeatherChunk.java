@@ -3,18 +3,19 @@ package dev.lukebemish.tempest.impl.data.world;
 import dev.lukebemish.tempest.impl.Services;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 public final class UpdateWeatherChunk {
     private final int level;
     private final ChunkPos chunkPos;
-    private final int[] posData;
-    private final int[] weatherData;
+    final int[] posData;
+    final int[] weatherData;
 
-    private final float precipitation;
-    private final float temperature;
-    private final float windSpeed;
-    private final float windDirection;
+    final float precipitation;
+    final float temperature;
+    final float windSpeed;
+    final float windDirection;
 
     public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float precipitation, float temperature, float windSpeed, float windDirection) {
         this.level = level;
@@ -65,5 +66,11 @@ public final class UpdateWeatherChunk {
         Sender SENDER = Services.load(Sender.class);
 
         void send(UpdateWeatherChunk packet, LevelChunk chunk);
+    }
+
+    public void apply(Level level) {
+        var chunk = level.getChunk(chunkPos.x, chunkPos.z);
+        var chunkData = Services.PLATFORM.getChunkData(chunk);
+        chunkData.update(level, this);
     }
 }

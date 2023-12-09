@@ -3,7 +3,9 @@ package dev.lukebemish.tempest.impl.forge;
 import dev.lukebemish.tempest.impl.Constants;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.AttachedWeatherMapReloadListener;
+import dev.lukebemish.tempest.impl.forge.client.ClientEntrypoint;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
@@ -11,10 +13,12 @@ import net.minecraftforge.event.level.ChunkWatchEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.PacketDistributor;
 
 @Mod(Constants.MOD_ID)
 public final class ModEntrypoint {
+
     public ModEntrypoint() {
         Constants.bootstrap();
 
@@ -29,6 +33,10 @@ public final class ModEntrypoint {
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
 
         ModNetworking.setup(modBus);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ClientEntrypoint.init(modBus);
+        }
     }
 
     private void onChunkSend(ChunkWatchEvent.Watch event) {

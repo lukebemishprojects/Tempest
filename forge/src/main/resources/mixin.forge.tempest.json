@@ -7,7 +7,9 @@
     "PlayerListMixin",
     "LivingEntityMixin"
   ],
-  "client": [],
+  "client": [
+    "client.RebuildTaskMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1

@@ -40,7 +40,7 @@ public abstract class ServerLevelMixin extends Level implements WeatherContainer
         at = @At("HEAD")
     )
     private void tempest$tickChunk(LevelChunk chunk, int randomTickSpeed, CallbackInfo ci) {
-        if (this.random.nextInt(16) == 0) {
+        if (this.random.nextInt(8) == 0) {
             var chunkData = Services.PLATFORM.getChunkData(chunk);
             //noinspection DataFlowIssue
             chunkData.tick((ServerLevel) (Object) this, weatherMap);
