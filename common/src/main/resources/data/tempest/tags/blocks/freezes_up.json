@@ -5,6 +5,7 @@
     "#minecraft:fence_gates",
     "#minecraft:pressure_plates",
     "#minecraft:buttons",
+    "#minecraft:beds",
     "minecraft:furnace",
     "minecraft:blast_furnace",
     "minecraft:smoker",
@@ -25,6 +26,7 @@
     },
     "minecraft:piston",
     "minecraft:sticky_piston",
+    "minecraft:piston_head",
     "minecraft:lever",
     "minecraft:repeater",
     "minecraft:comparator"
