@@ -137,7 +137,7 @@ public class FancyPrecipitationRenderer {
                 var data = Services.PLATFORM.getChunkData(chunk);
                 var status = data.getWeatherStatus(mutableBlockPos);
                 if (status != null) {
-                    float precipLevel = status.intensity * status.intensity;
+                    float precipLevel = 1 - (0.7f * (1 - status.intensity));
                     int lowerY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
                     int minY = Math.max(floorY - layers, lowerY);
                     int maxY = Math.max(floorY + layers, lowerY);

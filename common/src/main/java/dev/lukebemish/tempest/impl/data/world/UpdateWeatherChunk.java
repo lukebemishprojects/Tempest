@@ -12,12 +12,12 @@ public final class UpdateWeatherChunk {
     final int[] posData;
     final int[] weatherData;
 
-    final float precipitation;
-    final float temperature;
-    final float windSpeed;
-    final float windDirection;
+    final float[] precipitation;
+    final float[] temperature;
+    final float[] windSpeed;
+    final float[] windDirection;
 
-    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float precipitation, float temperature, float windSpeed, float windDirection) {
+    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float[] precipitation, float[] temperature, float[] windSpeed, float[] windDirection) {
         this.level = level;
         this.precipitation = precipitation;
         this.temperature = temperature;
@@ -32,10 +32,12 @@ public final class UpdateWeatherChunk {
     }
 
     public void encoder(FriendlyByteBuf buffer) {
-        buffer.writeFloat(precipitation);
-        buffer.writeFloat(temperature);
-        buffer.writeFloat(windSpeed);
-        buffer.writeFloat(windDirection);
+        for (int i = 0; i < 4; i++) {
+            buffer.writeFloat(precipitation[i]);
+            buffer.writeFloat(temperature[i]);
+            buffer.writeFloat(windSpeed[i]);
+            buffer.writeFloat(windDirection[i]);
+        }
         buffer.writeVarInt(level);
         buffer.writeLong(chunkPos.toLong());
         buffer.writeInt(posData.length);
@@ -46,10 +48,16 @@ public final class UpdateWeatherChunk {
     }
 
     public static UpdateWeatherChunk decoder(FriendlyByteBuf buffer) {
-        float precipitation = buffer.readFloat();
-        float temperature = buffer.readFloat();
-        float windSpeed = buffer.readFloat();
-        float windDirection = buffer.readFloat();
+        float[] precipitation = new float[4];
+        float[] temperature = new float[4];
+        float[] windSpeed = new float[4];
+        float[] windDirection = new float[4];
+        for (int i = 0; i < 4; i++) {
+            precipitation[i] = buffer.readFloat();
+            temperature[i] = buffer.readFloat();
+            windSpeed[i] = buffer.readFloat();
+            windDirection[i] = buffer.readFloat();
+        }
         int level = buffer.readVarInt();
         ChunkPos chunkPos = new ChunkPos(buffer.readLong());
         int l = buffer.readInt();
