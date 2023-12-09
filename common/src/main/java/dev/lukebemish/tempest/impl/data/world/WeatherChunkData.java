@@ -40,8 +40,8 @@ public class WeatherChunkData {
     private float[] windSpeed = new float[4];
     private float[] windDirection = new float[4];
 
-    private static final int[] XS = new int[] {0, 0, 15, 15};
-    private static final int[] ZS = new int[] {0, 15, 0, 15};
+    private static final int[] XS = new int[] {0, 0, 16, 16};
+    private static final int[] ZS = new int[] {0, 16, 0, 16};
 
     public WeatherChunkData(LevelChunk chunk) {
         this.chunk = chunk;
@@ -155,23 +155,11 @@ public class WeatherChunkData {
     }
 
     public float temperature(BlockPos pos) {
-        var biome = chunk.getLevel().getBiome(pos).value();
-        float temp = relative(pos, temperature);
-        if (!biome.warmEnoughToRain(pos)) {
-            temp -= 0.85f;
-        } else if (biome.getBaseTemperature() > 1.5f) {
-            temp += 0.85f;
-        }
-        return temp;
+        return relative(pos, temperature);
     }
 
     public float precipitation(BlockPos pos) {
-        var biome = chunk.getLevel().getBiome(pos).value();
-        float precip = relative(pos, precipitation);
-        if (!biome.hasPrecipitation()) {
-            precip -= 0.75f;
-        }
-        return precip;
+        return relative(pos, precipitation);
     }
 
     public float windSpeed(BlockPos pos) {
@@ -196,9 +184,27 @@ public class WeatherChunkData {
 
         if (level.random.nextInt(16) == 0) {
             long gameTime = chunk.getLevel().getGameTime();
+            BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
             for (int i = 0; i < 4; i++) {
+                mutablePos.setX(x+XS[i]);
+                mutablePos.setZ(z+ZS[i]);
+                var surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mutablePos);
+                var biome = chunk.getLevel().getBiome(surface).value();
+
                 temperature[i] = weatherMap.temperature().query(x+XS[i], z+ZS[i], gameTime);
+
+                if (!biome.warmEnoughToRain(surface)) {
+                    temperature[i] -= 0.85f;
+                } else if (biome.getBaseTemperature() > 1.5f) {
+                    temperature[i] += 0.7f;
+                }
+
                 precipitation[i] = weatherMap.precipitation().query(x+XS[i], z+ZS[i], gameTime);
+
+                if (!biome.hasPrecipitation()) {
+                    precipitation[i] -= 0.6f;
+                }
+
                 windSpeed[i] = (weatherMap.windSpeed().query(x+XS[i], z+ZS[i], gameTime) + 1) / 2;
                 windDirection[i] = weatherMap.windDirection().query(x+XS[i], z+ZS[i], gameTime);
             }
@@ -299,21 +305,24 @@ public class WeatherChunkData {
                     }
                     return precip > 0.5f;
                 } else if (isSnowing(temp, precip)) {
-                    var toSnow = toFreeze.above();
+                    BlockPos toSnow = toFreeze.above();
                     var state = level.getBlockState(toSnow);
-                    if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
-                        level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
-                    } else if (state.getBlock() == Blocks.SNOW) {
+                    if (state.getBlock() == Blocks.SNOW) {
                         int levels = state.getValue(SnowLayerBlock.LAYERS);
-                        if (levels < 8) {
-                            var newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
-                            level.setBlockAndUpdate(toSnow, newState);
-                            Block.pushEntitiesUp(state, newState, level, toSnow);
+                        BlockState newState;
+                        if (levels < 7) {
+                            newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
                         } else {
-                            var newState = Blocks.SNOW_BLOCK.defaultBlockState();
-                            level.setBlockAndUpdate(toSnow, newState);
-                            Block.pushEntitiesUp(state, newState, level, toSnow);
+                            if (level.random.nextFloat() < 0.75f) {
+                                newState = Blocks.SNOW_BLOCK.defaultBlockState();
+                            } else {
+                                newState = Blocks.POWDER_SNOW.defaultBlockState();
+                            }
                         }
+                        level.setBlockAndUpdate(toSnow, newState);
+                        Block.pushEntitiesUp(state, newState, level, toSnow);
+                    } else if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
+                        level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
                     }
                     return precip > 0.5f;
                 }
@@ -323,11 +332,15 @@ public class WeatherChunkData {
     }
 
     private static boolean isSnowing(float temp, float precip) {
-        return (temp < -0.6) || (temp < -0.1 && precip > 0.7f);
+        return precip > 0f && ((temp < -0.6) || (temp < -0.1 && precip > 0.7f));
     }
 
     private static boolean isSleeting(float temp, float precip) {
-        return temp < 0 && !isSnowing(temp, precip);
+        return precip > 0f && (temp < 0 && !isSnowing(temp, precip));
+    }
+
+    private static boolean isRaining(float temp, float precip) {
+        return precip > 0f && !isSleeting(temp, precip) && !isSnowing(temp, precip);
     }
 
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
@@ -371,8 +384,8 @@ public class WeatherChunkData {
                 } else {
                     level.setBlockAndUpdate(above, Blocks.AIR.defaultBlockState());
                 }
-            } else if (stateAbove.getBlock() == Blocks.AIR && state.getBlock() == Blocks.SNOW_BLOCK) {
-                level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 8));
+            } else if (stateAbove.getBlock() == Blocks.AIR && (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW)) {
+                level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
             }
         }
     }
