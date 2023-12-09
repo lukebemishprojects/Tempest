@@ -12,7 +12,7 @@ import dev.lukebemish.tempest.impl.client.LevelChunkHolder;
 import dev.lukebemish.tempest.impl.client.OverlaySpriteListener;
 import dev.lukebemish.tempest.impl.mixin.client.DispatchRenderChunkAccessor;
 import net.minecraft.client.renderer.ChunkBufferBuilderPack;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -112,6 +112,7 @@ public class RebuildTaskMixin {
         var re = regionRef.get();
         if (re != null) {
             TextureAtlasSprite sprite;
+            var level = ((LevelChunkHolder) re).tempest$level();
             var chunk = LevelChunkHolder.tempest$chunkAt(re, pos);
             var data = Services.PLATFORM.getChunkData(chunk);
             var blackIce = data.query(pos).blackIce();
@@ -126,6 +127,9 @@ public class RebuildTaskMixin {
             }
 
             var bakedModel = blockRenderDispatcher.getBlockModel(state);
+
+            //boolean flag = Minecraft.useAmbientOcclusion() && state.getLightEmission(blockAndTintGetter, pos) == 0 && bakedModel.useAmbientOcclusion(state, renderType);
+
             List<BakedQuad> quads = new ArrayList<>(bakedModel.getQuads(
                 state,
                 null,
@@ -144,6 +148,7 @@ public class RebuildTaskMixin {
             if (setRef.get().add(RenderType.translucent())) {
                 ((DispatchRenderChunkAccessor) renderChunk).tempest$beginLayer(translucentBuilder);
             }
+            var posUp = pos.above();
             for (var quad : quads) {
                 if (quad.getDirection() == Direction.UP) {
                     int[] vertexData = Arrays.copyOf(quad.getVertices(), quad.getVertices().length);
@@ -152,8 +157,7 @@ public class RebuildTaskMixin {
                         float py = packedPos(vert, 1, vertexData) + 0.01f;
                         float pz = packedPos(vert, 2, vertexData);
                         Vector4f vector4f = poseStack.last().pose().transform(new Vector4f(px, py, pz, 1.0F));
-                        //int light = packedLight(vert, vertexData);
-                        int light = LightTexture.FULL_BRIGHT;
+                        int light = LevelRenderer.getLightColor(level, state, posUp);
                         float u = sprite.getU(px * 16);
                         float v = sprite.getV(pz * 16);
                         float nx = packedNormal(vert, 0, vertexData);

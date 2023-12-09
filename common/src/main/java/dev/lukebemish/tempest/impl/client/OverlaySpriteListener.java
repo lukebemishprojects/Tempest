@@ -22,7 +22,7 @@ public class OverlaySpriteListener implements PreparableReloadListener {
         BLACK_ICE_1 = null;
         BLACK_ICE_2 = null;
         BLACK_ICE_3 = null;
-        return CompletableFuture.supplyAsync(() -> null);
+        return CompletableFuture.runAsync(() -> {}, backgroundExecutor).thenCompose(preparationBarrier::wait).thenRunAsync(() -> {}, gameExecutor);
     }
 
     private static TextureAtlasSprite getBlackIce(int i) {

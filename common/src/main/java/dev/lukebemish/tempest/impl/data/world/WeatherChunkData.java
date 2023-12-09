@@ -1,5 +1,6 @@
 package dev.lukebemish.tempest.impl.data.world;
 
+import dev.lukebemish.tempest.impl.data.WeatherCategory;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
 import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.core.BlockPos;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,8 @@ public class WeatherChunkData {
     private float windSpeed;
     private float windDirection;
 
+    private boolean known;
+
     public WeatherChunkData(LevelChunk chunk) {
         this.chunk = chunk;
     }
@@ -42,6 +46,10 @@ public class WeatherChunkData {
             updateQueue.put(pos, data);
             dirty = true;
         }
+    }
+
+    public boolean known() {
+        return known;
     }
 
     public void update() {
@@ -65,20 +73,23 @@ public class WeatherChunkData {
         }
     }
 
-    public UpdateWeatherChunk full() {
-        int[] posData;
-        int[] weatherData;
-        var entryList = new ArrayList<>(data.int2ObjectEntrySet());
-        int size = entryList.size();
-        posData = new int[size];
-        weatherData = new int[size];
-        int i = 0;
-        for (Int2ObjectMap.Entry<WeatherData.Concrete> entry : entryList) {
-            posData[i] = entry.getIntKey();
-            weatherData[i] = entry.getValue().data();
-            i++;
+    public @Nullable UpdateWeatherChunk full() {
+        if (known()) {
+            int[] posData;
+            int[] weatherData;
+            var entryList = new ArrayList<>(data.int2ObjectEntrySet());
+            int size = entryList.size();
+            posData = new int[size];
+            weatherData = new int[size];
+            int i = 0;
+            for (Int2ObjectMap.Entry<WeatherData.Concrete> entry : entryList) {
+                posData[i] = entry.getIntKey();
+                weatherData[i] = entry.getValue().data();
+                i++;
+            }
+            return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windSpeed, windDirection);
         }
-        return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windSpeed, windDirection);
+        return null;
     }
 
     public WeatherData query(BlockPos pos) {
@@ -111,12 +122,16 @@ public class WeatherChunkData {
         });
         tag.putIntArray("positions", keys);
         tag.put("data", values);
+        tag.putBoolean("known", known);
         return tag;
     }
 
     public void load(CompoundTag tag) {
         int[] keys = tag.getIntArray("positions");
         ListTag values = tag.getList("data", 10);
+        if (tag.contains("known")) {
+            known = tag.getBoolean("known");
+        }
         if (keys.length != values.size()) {
             throw new IllegalStateException("Positions and data are not the same size");
         }
@@ -127,25 +142,39 @@ public class WeatherChunkData {
         }
     }
 
+    public float temperature(BlockPos pos) {
+        var biome = chunk.getLevel().getBiome(pos).value();
+        float temp = temperature;
+        if (!biome.warmEnoughToRain(pos)) {
+            temp -= 0.85f;
+        } else if (biome.getBaseTemperature() > 1.5f) {
+            temp += 0.85f;
+        }
+        return temp;
+    }
+
+    public float precipitation(BlockPos pos) {
+        return precipitation;
+    }
+
+    public float windSpeed(BlockPos pos) {
+        return windSpeed;
+    }
+
+    public float windDirection(BlockPos pos) {
+        return windDirection;
+    }
+
     public void tick(ServerLevel level, WeatherMapData.Built weatherMap) {
+        this.known = true;
         int x = chunk.getPos().getMinBlockX();
         int z = chunk.getPos().getMinBlockZ();
 
         if (level.random.nextInt(16) == 0) {
             long gameTime = chunk.getLevel().getGameTime();
-
-            var centerPos = new BlockPos(x + 8, 0, z + 8);
-            var biome = level.getBiome(centerPos).value();
             temperature = weatherMap.temperature().query(x, z, gameTime);
-
-            if (!biome.warmEnoughToRain(centerPos)) {
-                temperature -= 0.85f;
-            } else if (biome.getBaseTemperature() > 1.5f) {
-                temperature += 0.85f;
-            }
-
             precipitation = weatherMap.precipitation().query(x, z, gameTime);
-            windSpeed = weatherMap.windSpeed().query(x, z, gameTime);
+            windSpeed = (weatherMap.windSpeed().query(x, z, gameTime) + 1) / 2;
             windDirection = weatherMap.windDirection().query(x, z, gameTime);
             this.dirty = true;
         }
@@ -157,6 +186,7 @@ public class WeatherChunkData {
             //noinspection deprecation
             if (!state.blocksMotion()) {
                 data.remove(key);
+                update(key, 0);
             }
             pos.setY(pos.getY() + 1);
             state = level.getBlockState(pos);
@@ -176,16 +206,17 @@ public class WeatherChunkData {
 
     private boolean meltAndFreeze(ServerLevel level, int x, int z) {
         BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, level.getBlockRandomPos(x, 0, z, 15)).below();
-        if (temperature < -0.25f) {
+        float temp = temperature(waterySurface);
+        if (temp < 0f) {
             // add new black ice or ice
             tryFreezeBlock(level, waterySurface);
-            return temperature < -0.5f;
+            return temp < -0.5f;
         }
 
-        if (temperature > 0) {
+        if (temp > 0) {
             // melt black ice or ice
             tryMeltBlock(level, waterySurface);
-            return temperature > 0.5f;
+            return temp > 0.5f;
         }
         return false;
     }
@@ -199,7 +230,7 @@ public class WeatherChunkData {
                 if (current < 15) {
                     data.blackIce(current + 5);
                 }
-            } else {
+            } else if (precipitation(toFreeze) > 0f) {
                 var data = query(toFreeze);
                 int current = data.blackIce();
                 if (current < 15) {
@@ -210,7 +241,7 @@ public class WeatherChunkData {
     }
 
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
-        if (shouldFreeze(level, toMelt)) {
+        if (shouldMelt(level, toMelt)) {
             if (isIce(level, toMelt)) {
                 level.setBlockAndUpdate(toMelt, Blocks.WATER.defaultBlockState());
                 var data = query(toMelt);
@@ -230,6 +261,10 @@ public class WeatherChunkData {
 
     private boolean shouldFreeze(ServerLevel level, BlockPos toFreeze) {
         return toFreeze.getY() >= level.getMinBuildHeight() && toFreeze.getY() < level.getMaxBuildHeight() && level.getBrightness(LightLayer.BLOCK, toFreeze) < 10;
+    }
+
+    private boolean shouldMelt(ServerLevel level, BlockPos toFreeze) {
+        return toFreeze.getY() >= level.getMinBuildHeight() && toFreeze.getY() < level.getMaxBuildHeight();
     }
 
     private boolean isWater(ServerLevel level, BlockPos toFreeze) {
@@ -252,6 +287,7 @@ public class WeatherChunkData {
     }
 
     void update(Level level, UpdateWeatherChunk updateWeatherChunk) {
+        this.known = true;
         this.temperature = updateWeatherChunk.temperature;
         this.precipitation = updateWeatherChunk.precipitation;
         this.windSpeed = updateWeatherChunk.windSpeed;
@@ -265,5 +301,18 @@ public class WeatherChunkData {
             query(pos).data(value);
             level.setBlock(pos, level.getBlockState(pos), 3);
         }
+    }
+
+    public @Nullable WeatherCategory.WeatherStatus getWeatherStatus(BlockPos pos) {
+        if (precipitation(pos) > 0f) {
+            WeatherCategory category;
+            if (temperature(pos) < 0f) {
+                category = WeatherCategory.SNOW;
+            } else {
+                category = WeatherCategory.RAIN;
+            }
+            return new WeatherCategory.WeatherStatus(category, precipitation(pos), windSpeed(pos), windDirection(pos));
+        }
+        return null;
     }
 }
