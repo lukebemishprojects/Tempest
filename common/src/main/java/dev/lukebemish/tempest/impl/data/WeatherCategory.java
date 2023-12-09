@@ -29,7 +29,8 @@ public enum WeatherCategory {
 
         public WeatherStatus(WeatherCategory category, float intensity, float windSpeed, float windDirection) {
             this.category = category;
-            this.intensity = Mth.sqrt(intensity);
+            float i = Mth.sqrt(intensity);
+            this.intensity = 1 - (0.7f * (1 - i));
             this.swirl = (1 - windSpeed * windSpeed) * this.category.swirlMult;
             this.windX = (float) Math.cos(windDirection * Math.PI);
             this.windZ = (float) Math.sin(windDirection / Math.PI);

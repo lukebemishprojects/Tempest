@@ -115,10 +115,7 @@ public class FancyPrecipitationRenderer {
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
 
-        int layers = 5;
-        if (Minecraft.useFancyGraphics()) {
-            layers = 10;
-        }
+        int layers = 10;
 
         int rendering = -1;
 
@@ -137,7 +134,7 @@ public class FancyPrecipitationRenderer {
                 var data = Services.PLATFORM.getChunkData(chunk);
                 var status = data.getWeatherStatus(mutableBlockPos);
                 if (status != null) {
-                    float precipLevel = 1 - (0.7f * (1 - status.intensity));
+                    float precipLevel = status.intensity;
                     int lowerY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
                     int minY = Math.max(floorY - layers, lowerY);
                     int maxY = Math.max(floorY + layers, lowerY);
