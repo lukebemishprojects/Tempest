@@ -219,6 +219,12 @@ public class WeatherChunkData {
                 data.remove(key);
                 update(key, 0);
             }
+            if (meltsAt(level, pos)) {
+                var val = data.get(key);
+                int blackIce = val.blackIce();
+                blackIce = Math.max(0, blackIce - 2);
+                val.blackIce(blackIce);
+            }
         }
 
         if (meltAndFreeze(level, x, z)) {
@@ -335,6 +341,10 @@ public class WeatherChunkData {
                 level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 8));
             }
         }
+    }
+
+    private boolean meltsAt(ServerLevel level, BlockPos pos) {
+        return level.getBrightness(LightLayer.BLOCK, pos) > 11;
     }
 
     private boolean shouldFreeze(ServerLevel level, BlockPos toFreeze) {

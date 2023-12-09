@@ -6,7 +6,12 @@
   "mixins": [
     "LivingEntityMixin",
     "PlayerMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "LevelMixin",
+    "FireBlockMixin",
+    "WeatherCheckMixin",
+    "BeehiveBlockEntityMixin",
+    "BeeMixin"
   ],
   "client": [
     "client.DispatchRenderChunkAccessor",
