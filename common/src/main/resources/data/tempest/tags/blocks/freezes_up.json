@@ -22,6 +22,11 @@
     {
       "id": "#c:chests",
       "required": false
-    }
+    },
+    "minecraft:piston",
+    "minecraft:sticky_piston",
+    "minecraft:lever",
+    "minecraft:repeater",
+    "minecraft:comparator"
   ]
 }
