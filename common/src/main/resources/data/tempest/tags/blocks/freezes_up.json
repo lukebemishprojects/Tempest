@@ -1,0 +1,27 @@
+{
+  "values": [
+    "#minecraft:doors",
+    "#minecraft:trapdoors",
+    "#minecraft:fence_gates",
+    "#minecraft:pressure_plates",
+    "#minecraft:buttons",
+    "minecraft:furnace",
+    "minecraft:blast_furnace",
+    "minecraft:smoker",
+    "minecraft:brewing_stand",
+    "minecraft:enchanting_table",
+    "minecraft:hopper",
+    "minecraft:dropper",
+    "minecraft:dispenser",
+    "minecraft:beacon",
+    "minecraft:bell",
+    {
+      "id": "#forge:chests",
+      "required": false
+    },
+    {
+      "id": "#c:chests",
+      "required": false
+    }
+  ]
+}

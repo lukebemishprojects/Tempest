@@ -1,9 +1,11 @@
 package dev.lukebemish.tempest.impl.data.world;
 
+import dev.lukebemish.tempest.impl.Constants;
 import dev.lukebemish.tempest.impl.data.WeatherCategory;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
 import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -205,25 +207,33 @@ public class WeatherChunkData {
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int key : new IntArrayList(data.keySet())) {
-            decode(key, pos);
-            BlockState state = level.getBlockState(pos);
-            //noinspection deprecation
-            if (!state.blocksMotion()) {
-                data.remove(key);
-                update(key, 0);
-            }
-            pos.setY(pos.getY() + 1);
-            state = level.getBlockState(pos);
-            //noinspection deprecation
-            if (state.blocksMotion()) {
-                data.remove(key);
-                update(key, 0);
-            }
-            if (meltsAt(level, pos)) {
-                var val = data.get(key);
-                int blackIce = val.blackIce();
-                blackIce = Math.max(0, blackIce - 2);
-                val.blackIce(blackIce);
+            var val = this.data.get(key);
+            if (val != null) {
+                decode(key, pos);
+                BlockState state = level.getBlockState(pos);
+                if (val.frozenUp() && !state.is(Constants.FREEZES_UP)) {
+                    val.frozenUp(false);
+                }
+                //noinspection deprecation
+                if (!state.blocksMotion()) {
+                    if (!val.frozenUp() || !state.is(Constants.FREEZES_UP)) {
+                        data.remove(key);
+                        update(key, 0);
+                    }
+                }
+                if (meltsAt(level, pos)) {
+                    int blackIce = val.blackIce();
+                    blackIce = Math.max(0, blackIce - 2);
+                    val.levelBlackIce(level, pos, blackIce);
+                }
+                boolean belowSturdyUp = state.isFaceSturdy(level, pos, Direction.UP);
+                pos.setY(pos.getY() + 1);
+                state = level.getBlockState(pos);
+                boolean aboveSturdyDown = state.isFaceSturdy(level, pos, Direction.DOWN);
+                if (belowSturdyUp && aboveSturdyDown) {
+                    data.remove(key);
+                    update(key, 0);
+                }
             }
         }
 
@@ -264,7 +274,7 @@ public class WeatherChunkData {
                     var data = query(toFreeze);
                     int current = data.blackIce();
                     if (current < 15) {
-                        data.blackIce(current + 3);
+                        data.levelBlackIce(level, toFreeze, current + 3);
                     }
                 }
                 return temp < -0.5f;
@@ -273,7 +283,19 @@ public class WeatherChunkData {
                     var data = query(toFreeze);
                     int current = data.blackIce();
                     if (current < 15) {
-                        data.blackIce(current + 2);
+                        data.levelBlackIce(level, toFreeze, current + 2);
+                        var abovePos = toFreeze.above();
+                        BlockState aboveState;
+                        while ((aboveState = level.getBlockState(abovePos)).is(Constants.FREEZES_UP)) {
+                            if (aboveState.is(Constants.FREEZES_UP)) {
+                                var aboveData = query(abovePos);
+                                int aboveCurrent = aboveData.blackIce();
+                                if (aboveCurrent < 15) {
+                                    aboveData.levelBlackIce(level, abovePos, aboveCurrent + 2);
+                                }
+                            }
+                            abovePos = abovePos.above();
+                        }
                     }
                     return precip > 0.5f;
                 } else if (isSnowing(temp, precip)) {
@@ -316,13 +338,25 @@ public class WeatherChunkData {
                 var data = query(toMelt);
                 int current = data.blackIce();
                 if (current > 0) {
-                    data.blackIce(0);
+                    data.levelBlackIce(level, toMelt, 0);
                 }
             } else {
                 var data = query(toMelt);
                 int current = data.blackIce();
                 if (current > 0) {
-                    data.blackIce(Math.max(0, current - 2));
+                    data.levelBlackIce(level, toMelt, Math.max(0, current - 2));
+                    var abovePos = toMelt.above();
+                    BlockState aboveState;
+                    while ((aboveState = level.getBlockState(abovePos)).is(Constants.FREEZES_UP)) {
+                        if (aboveState.is(Constants.FREEZES_UP)) {
+                            var aboveData = query(abovePos);
+                            int aboveCurrent = aboveData.blackIce();
+                            if (aboveCurrent > 0) {
+                                aboveData.levelBlackIce(level, abovePos, Math.max(0, aboveCurrent - 2));
+                            }
+                        }
+                        abovePos = abovePos.above();
+                    }
                 }
             }
 
@@ -344,6 +378,22 @@ public class WeatherChunkData {
     }
 
     private boolean meltsAt(ServerLevel level, BlockPos pos) {
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        mutable.set(pos);
+        for (int i = -1; i <= 1; i++) {
+            mutable.setX(pos.getX() + i);
+            if (level.getBrightness(LightLayer.BLOCK, mutable) > 11) return true;
+        }
+        mutable.setX(pos.getX());
+        for (int i = -1; i <= 1; i++) {
+            mutable.setY(pos.getY() + i);
+            if (level.getBrightness(LightLayer.BLOCK, mutable) > 11) return true;
+        }
+        mutable.setY(pos.getY());
+        for (int i = -1; i <= 1; i++) {
+            mutable.setZ(pos.getZ() + i);
+            if (level.getBrightness(LightLayer.BLOCK, mutable) > 11) return true;
+        }
         return level.getBrightness(LightLayer.BLOCK, pos) > 11;
     }
 

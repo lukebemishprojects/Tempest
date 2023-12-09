@@ -1,15 +1,28 @@
 package dev.lukebemish.tempest.impl.data.world;
 
+import dev.lukebemish.tempest.impl.Constants;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.IntFunction;
 
 public sealed interface WeatherData {
     void blackIce(int blackIce);
+
+    default void levelBlackIce(ServerLevel level, BlockPos pos, int blackIce) {
+        blackIce(blackIce);
+        var state = level.getBlockState(pos);
+        frozenUp(blackIce > 4 && state.is(Constants.FREEZES_UP));
+    }
+
     int blackIce();
 
     void data(int value);
+
+    void frozenUp(boolean stuck);
+    boolean frozenUp();
 
     final class Reference implements WeatherData {
         private final WeatherChunkData intrusive;
@@ -53,12 +66,35 @@ public sealed interface WeatherData {
             }
             concrete.data(value);
         }
+
+        @Override
+        public void frozenUp(boolean frozenUp) {
+            if (this.concrete == null) {
+                this.concrete = intrusive.data.computeIfAbsent(pos, factory);
+            }
+            concrete.frozenUp(frozenUp);
+        }
+
+        @Override
+        public boolean frozenUp() {
+            if (this.concrete != null) {
+                return this.concrete.frozenUp();
+            }
+            var concrete = intrusive.data.getOrDefault(pos, null);
+            if (concrete == null) {
+                return false;
+            } else {
+                this.concrete = concrete;
+                return concrete.frozenUp();
+            }
+        }
     }
 
     final class Concrete implements WeatherData {
         private final WeatherChunkData intrusive;
 
-        // 0xF: black ice
+        // 0b0XXXX: black ice
+        // 0bX0000: frozen up
         private int data;
 
         private final int pos;
@@ -102,6 +138,21 @@ public sealed interface WeatherData {
         public void data(int value) {
             this.data = value;
             update();
+        }
+
+        @Override
+        public void frozenUp(boolean stuck) {
+            if (stuck) {
+                data |= 0b10000;
+            } else {
+                data &= ~0b10000;
+            }
+            update();
+        }
+
+        @Override
+        public boolean frozenUp() {
+            return (data & 0b10000) != 0;
         }
 
         int data() {

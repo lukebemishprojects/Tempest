@@ -4,24 +4,24 @@
     "type": "tempest:noisy",
     "parameters": "tempest:broad",
     "offset": 563859372,
-    "rate": 2000
+    "rate": 200
   },
   "temperature": {
     "type": "tempest:noisy",
     "parameters": "tempest:broad",
     "offset": 826574937,
-    "rate": 2000
+    "rate": 200
   },
   "wind_speed": {
     "type": "tempest:noisy",
     "parameters": "tempest:broad",
     "offset": 375628563,
-    "rate": 2000
+    "rate": 200
   },
   "wind_direction": {
     "type": "tempest:noisy",
     "parameters": "tempest:broad",
     "offset": 184726402,
-    "rate": 2000
+    "rate": 200
   }
 }
