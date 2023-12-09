@@ -81,6 +81,7 @@ public sealed interface WeatherData {
         private void update() {
             if (boring()) {
                 intrusive.data.remove(pos);
+                intrusive.update(pos, 0);
             } else {
                 intrusive.update(pos, data);
             }

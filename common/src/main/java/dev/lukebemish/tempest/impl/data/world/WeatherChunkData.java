@@ -163,6 +163,7 @@ public class WeatherChunkData {
             //noinspection deprecation
             if (state.blocksMotion()) {
                 data.remove(key);
+                update(key, 0);
             }
         }
 
