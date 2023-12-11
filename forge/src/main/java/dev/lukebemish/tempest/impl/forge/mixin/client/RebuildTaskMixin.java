@@ -134,7 +134,7 @@ public class RebuildTaskMixin {
                 ((DispatchRenderChunkAccessor) renderChunk).tempest$beginLayer(translucentBuilder);
             }
             Function<Direction, List<BakedQuad>> quadProvider = dir -> bakedModel.getQuads(state, dir, random, modelData, null);
-            QuadHelper.renderOverlayQuads(state, pos, poseStack, quadProvider, frozenUp, level, sprite, translucentBuilder);
+            QuadHelper.renderOverlayQuads(state, pos, poseStack.last().pose(), quadProvider, frozenUp, level, sprite, translucentBuilder);
         }
     }
 }

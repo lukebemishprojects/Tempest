@@ -1,6 +1,5 @@
 package dev.lukebemish.tempest.impl.forge.compat.embeddium;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.client.OverlaySpriteListener;
 import dev.lukebemish.tempest.impl.client.QuadHelper;
@@ -18,6 +17,7 @@ import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.embeddedt.embeddium.api.ChunkMeshEvent;
+import org.joml.Matrix4f;
 
 import java.util.List;
 import java.util.function.Function;
@@ -43,7 +43,7 @@ public class EmbeddiumCompat {
         }
         event.addMeshAppender(context -> {
             RandomSource random = RandomSource.create();
-            for (int i = 0; i < icedPositions.size(); i++) {
+            for (int i = 0; i < Math.min(icedPositions.size(), 1); i++) {
                 var pos = icedPositions.get(i);
                 var blackIce = blackIces.getInt(i);
                 var frozenUp = frozenUps.getBoolean(i);
@@ -60,15 +60,15 @@ public class EmbeddiumCompat {
                 if (frozenUp) {
                     sprite = OverlaySpriteListener.getBlackIce3();
                 }
-                var state = level.getBlockState(pos);
+                var state = context.blockRenderView().getBlockState(pos);
                 var bakedModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(state);
                 var modelData = bakedModel.getModelData(context.blockRenderView(), pos, state, ModelData.EMPTY);
                 random.setSeed(state.getSeed(pos));
                 Function<Direction, List<BakedQuad>> quadProvider = dir -> bakedModel.getQuads(state, dir, random, modelData, null);
                 var vertexConsumer = context.vertexConsumerProvider().apply(RenderType.translucent());
-                var poseStack = new PoseStack();
-                poseStack.translate(pos.getX() & 0xFF, pos.getY() & 0xFF, pos.getZ() & 0xFF);
-                QuadHelper.renderOverlayQuads(state, pos, poseStack, quadProvider, frozenUp, context.blockRenderView(), sprite, vertexConsumer);
+                var pose = new Matrix4f();
+                pose.translation(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
+                QuadHelper.renderOverlayQuads(state, pos, pose, quadProvider, frozenUp, context.blockRenderView(), sprite, vertexConsumer);
             }
         });
     }
