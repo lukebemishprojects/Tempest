@@ -23,7 +23,7 @@ managedversioning = "1.2.2"
 mixinextras = "0.3.1"
 
 # Compat
-embeddium = "0.2.12-git.297c03e+mc1.20.1"
+embeddium = "0.2.12-git.170afb8+mc1.20.1"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }

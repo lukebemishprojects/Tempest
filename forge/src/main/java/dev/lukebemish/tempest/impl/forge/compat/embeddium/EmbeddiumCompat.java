@@ -43,7 +43,7 @@ public class EmbeddiumCompat {
         }
         event.addMeshAppender(context -> {
             RandomSource random = RandomSource.create();
-            for (int i = 0; i < Math.min(icedPositions.size(), 1); i++) {
+            for (int i = 0; i < icedPositions.size(); i++) {
                 var pos = icedPositions.get(i);
                 var blackIce = blackIces.getInt(i);
                 var frozenUp = frozenUps.getBoolean(i);

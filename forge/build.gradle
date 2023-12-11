@@ -46,7 +46,7 @@ dependencies {
     include libs.mixinextras.forge
 
     modCompileOnly libs.embeddium
-    modRuntimeOnly libs.embeddium
+    //modRuntimeOnly libs.embeddium
 }
 
 // Publishing

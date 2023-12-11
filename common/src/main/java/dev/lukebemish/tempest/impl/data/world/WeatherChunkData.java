@@ -364,7 +364,7 @@ public class WeatherChunkData {
     private static boolean tryHailBreak(ServerLevel level, BlockPos toFreeze) {
         var hailEffectState = level.getBlockState(toFreeze);
         if (hailEffectState.is(Constants.BREAKS_WITH_HAIL)) {
-            level.destroyBlock(toFreeze, false);
+            level.destroyBlock(toFreeze, true);
             return false;
         }
         return true;
