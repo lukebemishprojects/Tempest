@@ -1,5 +1,6 @@
 package dev.lukebemish.tempest.impl.data.world;
 
+import dev.lukebemish.tempest.api.WeatherStatus;
 import dev.lukebemish.tempest.impl.Constants;
 import dev.lukebemish.tempest.impl.data.WeatherCategory;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
@@ -23,6 +24,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -399,6 +401,33 @@ public class WeatherChunkData {
 
     private static boolean isRaining(float temp, float precip, float thunder) {
         return precip > 0f && !isSleeting(temp, precip, thunder) && !isSnowing(temp, precip, thunder) && !isHailing(temp, precip, thunder);
+    }
+
+    public interface WeatherStatusAssembler {
+        WeatherStatus assemble(WeatherStatus.Kind kind, float intensity, float temperature, boolean thunder, Vec2 wind);
+    }
+
+    public WeatherStatus makeApiStatus(WeatherStatusAssembler assembler, BlockPos pos) {
+        float temp = temperature(pos);
+        float precip = precipitation(pos);
+        float thunder = thunder(pos);
+        float windX = windX(pos);
+        float windZ = windZ(pos);
+
+        WeatherStatus.Kind kind;
+        if (isSnowing(temp, precip, thunder)) {
+            kind = WeatherStatus.Kind.SNOW;
+        } else if (isSleeting(temp, precip, thunder)) {
+            kind = WeatherStatus.Kind.SLEET;
+        } else if (isHailing(temp, precip, thunder)) {
+            kind = WeatherStatus.Kind.HAIL;
+        } else if (isRaining(temp, precip, thunder)) {
+            kind = WeatherStatus.Kind.RAIN;
+        } else {
+            kind = WeatherStatus.Kind.CLEAR;
+        }
+
+        return assembler.assemble(kind, Mth.sqrt(Mth.clamp(precip, 0, 1)), temp, thunder > 0f, new Vec2(windX, windZ));
     }
 
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
