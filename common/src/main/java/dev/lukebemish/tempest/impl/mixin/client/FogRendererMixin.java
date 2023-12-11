@@ -33,4 +33,24 @@ public class FogRendererMixin {
             return rainLevel;
         }
     }
+
+    @ModifyExpressionValue(
+        method = "setupColor(Lnet/minecraft/client/Camera;FLnet/minecraft/client/multiplayer/ClientLevel;IF)V",
+        at = @At(
+            value = "INVOKE",
+            target = "net/minecraft/client/multiplayer/ClientLevel.getThunderLevel(F)F"
+        )
+    )
+    private static float tempest$modifyThunderevel(float rainLevel, Camera activeRenderInfo, float partialTicks, ClientLevel level, int renderDistanceChunks, float bossColorModifier) {
+        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        BlockPos cameraBlockPos = new BlockPos(Mth.floor(cameraPos.x), Mth.floor(cameraPos.y), Mth.floor(cameraPos.z));
+        var chunk = level.getChunkAt(cameraBlockPos);
+        var data = Services.PLATFORM.getChunkData(chunk);
+        var status = data.getWeatherStatus(cameraBlockPos);
+        if (status != null && status.thunder > rainLevel) {
+            return status.thunder;
+        } else {
+            return rainLevel;
+        }
+    }
 }

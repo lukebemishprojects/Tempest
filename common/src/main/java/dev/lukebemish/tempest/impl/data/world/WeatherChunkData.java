@@ -41,6 +41,7 @@ public class WeatherChunkData {
     private float[] temperature = new float[] {0.5f, 0.5f, 0.5f, 0.5f};
     private float[] windX = new float[4];
     private float[] windZ = new float[4];
+    private float[] thunder = new float[4];
 
     private static final int[] XS = new int[] {0, 0, 16, 16};
     private static final int[] ZS = new int[] {0, 16, 0, 16};
@@ -85,7 +86,7 @@ public class WeatherChunkData {
                 updateQueue.clear();
                 this.dirty = false;
             }
-            var packet = new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ);
+            var packet = new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ, thunder);
             UpdateWeatherChunk.Sender.SENDER.send(packet, chunk);
         }
     }
@@ -103,7 +104,7 @@ public class WeatherChunkData {
             weatherData[i] = entry.getValue().data();
             i++;
         }
-        return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ);
+        return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ, thunder);
     }
 
     public WeatherData query(BlockPos pos) {
@@ -142,6 +143,7 @@ public class WeatherChunkData {
             stats.putFloat("temperature" + i, temperature[i]);
             stats.putFloat("windX" + i, windX[i]);
             stats.putFloat("windZ" + i, windZ[i]);
+            stats.putFloat("thunder" + i, thunder[i]);
         }
         tag.put("stats", stats);
         return tag;
@@ -165,6 +167,7 @@ public class WeatherChunkData {
                 temperature[i] = stats.getFloat("temperature" + i);
                 windX[i] = stats.getFloat("windX" + i);
                 windZ[i] = stats.getFloat("windZ" + i);
+                thunder[i] = stats.getFloat("thunder" + i);
             }
         }
     }
@@ -183,6 +186,10 @@ public class WeatherChunkData {
 
     public float windZ(BlockPos pos) {
         return relative(pos, windZ);
+    }
+
+    public float thunder(BlockPos pos) {
+        return relative(pos, thunder);
     }
 
     private static float relative(BlockPos pos, float[] corners) {
@@ -226,6 +233,7 @@ public class WeatherChunkData {
 
                 windX[i] = weatherMap.windX().query(x+XS[i], z+ZS[i], gameTime);
                 windZ[i] = weatherMap.windZ().query(x+XS[i], z+ZS[i], gameTime);
+                thunder[i] = Mth.clamp(weatherMap.thunder().query(x+XS[i], z+ZS[i], gameTime), -1, 1);
             }
             this.dirty = true;
         }
@@ -276,10 +284,11 @@ public class WeatherChunkData {
         BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, level.getBlockRandomPos(x, 0, z, 15)).below();
         float temp = temperature(waterySurface);
         float precip = precipitation(waterySurface);
+        float thunder = thunder(waterySurface);
 
         boolean repeat = false;
 
-        if (isHailing(temp, precip)) {
+        if (isHailing(temp, precip, thunder)) {
             if (tryHailBreak(level, waterySurface.above())) {
                 tryHailBreak(level, waterySurface);
             }
@@ -303,15 +312,16 @@ public class WeatherChunkData {
     }
 
     private boolean tryFreezeBlock(ServerLevel level, BlockPos toFreeze) {
-        float precip = precipitation(toFreeze);
-        float temp = temperature(toFreeze);
+        float precip = this.precipitation(toFreeze);
+        float temp = this.temperature(toFreeze);
+        float thunder = this.thunder(toFreeze);
         if (validBlock(level, toFreeze)) {
             if (shouldFreeze(level, toFreeze)) {
                 var freezeState = level.getBlockState(toFreeze);
                 if (freezeState.getBlock() instanceof LiquidBlock) {
                     if (isFreezableWater(level, toFreeze)) {
                         level.setBlockAndUpdate(toFreeze, Blocks.ICE.defaultBlockState());
-                        var data = query(toFreeze);
+                        var data = this.query(toFreeze);
                         int current = data.blackIce();
                         if (current < 15) {
                             data.levelBlackIce(level, toFreeze, current + 3);
@@ -319,8 +329,8 @@ public class WeatherChunkData {
                     }
                     return level.random.nextFloat() < -temp;
                 } else {
-                    if (isSleeting(temp, precip)) {
-                        var data = query(toFreeze);
+                    if (isSleeting(temp, precip, thunder)) {
+                        var data = this.query(toFreeze);
                         int current = data.blackIce();
                         if (current < 15) {
                             data.levelBlackIce(level, toFreeze, current + 2);
@@ -338,7 +348,7 @@ public class WeatherChunkData {
                             }
                         }
                         return level.random.nextFloat() < precip;
-                    } else if (isSnowing(temp, precip)) {
+                    } else if (isSnowing(temp, precip, thunder)) {
                         BlockPos toSnow = toFreeze.above();
                         var state = level.getBlockState(toSnow);
                         if (state.getBlock() == Blocks.SNOW) {
@@ -375,20 +385,20 @@ public class WeatherChunkData {
         return true;
     }
 
-    private static boolean isSnowing(float temp, float precip) {
-        return precip > 0f && ((temp < -0.6) || (temp < -0.1 && precip > 0.7f));
+    private static boolean isHailing(float temp, float precip, float thunder) {
+        return temp < 0.5f && ((precip > 0.75f && temp > -0.5f) || thunder > 0.9f);
     }
 
-    private static boolean isSleeting(float temp, float precip) {
-        return precip > 0f && (temp < 0 && !isSnowing(temp, precip));
+    private static boolean isSnowing(float temp, float precip, float thunder) {
+        return precip > 0f && !isHailing(temp, precip, thunder) && ((temp < -0.6) || (temp < -0.1 && precip > 0.7f));
     }
 
-    private static boolean isRaining(float temp, float precip) {
-        return precip > 0f && !isSleeting(temp, precip) && !isSnowing(temp, precip) && !isHailing(temp, precip);
+    private static boolean isSleeting(float temp, float precip, float thunder) {
+        return precip > 0f && temp < 0 && !isSnowing(temp, precip, thunder) && !isHailing(temp, precip, thunder);
     }
 
-    private static boolean isHailing(float temp, float precip) {
-        return precip > 0.75f && temp < 0.5f;
+    private static boolean isRaining(float temp, float precip, float thunder) {
+        return precip > 0f && !isSleeting(temp, precip, thunder) && !isSnowing(temp, precip, thunder) && !isHailing(temp, precip, thunder);
     }
 
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
@@ -485,6 +495,7 @@ public class WeatherChunkData {
         this.precipitation = updateWeatherChunk.precipitation;
         this.windX = updateWeatherChunk.windX;
         this.windZ = updateWeatherChunk.windZ;
+        this.thunder = updateWeatherChunk.thunder;
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 0; i < updateWeatherChunk.posData.length; i++) {
@@ -501,16 +512,17 @@ public class WeatherChunkData {
         if (precipitation(pos) > 0f) {
             WeatherCategory category;
             float temp = temperature(pos);
-            if (isSnowing(temp, precip)) {
+            float thunder = this.thunder(pos);
+            if (isSnowing(temp, precip, thunder)) {
                 category = WeatherCategory.SNOW;
-            } else if (isSleeting(temp, precip)) {
+            } else if (isSleeting(temp, precip, thunder)) {
                 category = WeatherCategory.SLEET;
-            } else if (isHailing(temp, precip)) {
+            } else if (isHailing(temp, precip, thunder)) {
                 category = WeatherCategory.HAIL;
             } else {
                 category = WeatherCategory.RAIN;
             }
-            return new WeatherCategory.WeatherStatus(category, precipitation(pos), windX(pos), windZ(pos));
+            return new WeatherCategory.WeatherStatus(category, precipitation(pos), windX(pos), windZ(pos), thunder(pos));
         }
         return null;
     }

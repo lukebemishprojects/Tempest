@@ -1,5 +1,6 @@
 package dev.lukebemish.tempest.impl.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.client.FoxMutableVariant;
 import dev.lukebemish.tempest.impl.data.WeatherCategory;
@@ -44,5 +45,25 @@ public abstract class FoxMixin extends LivingEntity implements FoxMutableVariant
                 tempest$variant = null;
             }
         }
+    }
+
+    @ModifyExpressionValue(
+        method = "tick()V",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/level/Level;isThundering()Z"
+        )
+    )
+    private boolean tempest$modifyIsThundering(boolean original) {
+        if (!original) {
+            var pos = this.blockPosition();
+            //noinspection resource
+            var data = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos));
+            var status = data.getWeatherStatus(pos);
+            if (status != null && status.thunder > 0) {
+                return true;
+            }
+        }
+        return original;
     }
 }

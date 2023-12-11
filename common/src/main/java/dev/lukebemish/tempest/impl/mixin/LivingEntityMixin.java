@@ -87,7 +87,7 @@ public abstract class LivingEntityMixin extends Entity {
                         }
                     }
                 }
-                if (status != null && status.speed > 0.6) {
+                if (status != null && status.speed > 0.75) {
                     if (!this.onGround() || status.speed > 1) {
                         var cDelta = this.getDeltaMovement();
                         var windDelta = new Vec3(status.windX, 0, status.windZ);

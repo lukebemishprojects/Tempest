@@ -14,7 +14,11 @@
     "BeeMixin",
     "BlockStateBaseMixin",
     "FoxMixin",
-    "LevelChunkMixin"
+    "LevelChunkMixin",
+    "FoxSeekShelterMixin",
+    "LightningRodBlockMixin",
+    "PandaMixin",
+    "ThrownTridentMixin"
   ],
   "client": [
     "client.DispatchRenderChunkAccessor",

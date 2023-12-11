@@ -16,13 +16,15 @@ public final class UpdateWeatherChunk {
     final float[] temperature;
     final float[] windX;
     final float[] windZ;
+    final float[] thunder;
 
-    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float[] precipitation, float[] temperature, float[] windX, float[] windZ) {
+    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float[] precipitation, float[] temperature, float[] windX, float[] windZ, float[] thunder) {
         this.level = level;
         this.precipitation = precipitation;
         this.temperature = temperature;
         this.windX = windX;
         this.windZ = windZ;
+        this.thunder = thunder;
         if (posData.length != weatherData.length) {
             throw new IllegalArgumentException("posData and weatherData must be the same length");
         }
@@ -37,6 +39,7 @@ public final class UpdateWeatherChunk {
             buffer.writeFloat(temperature[i]);
             buffer.writeFloat(windX[i]);
             buffer.writeFloat(windZ[i]);
+            buffer.writeFloat(thunder[i]);
         }
         buffer.writeVarInt(level);
         buffer.writeLong(chunkPos.toLong());
@@ -50,13 +53,15 @@ public final class UpdateWeatherChunk {
     public static UpdateWeatherChunk decoder(FriendlyByteBuf buffer) {
         float[] precipitation = new float[4];
         float[] temperature = new float[4];
-        float[] windSpeed = new float[4];
-        float[] windDirection = new float[4];
+        float[] windX = new float[4];
+        float[] windZ = new float[4];
+        float[] thunder = new float[4];
         for (int i = 0; i < 4; i++) {
             precipitation[i] = buffer.readFloat();
             temperature[i] = buffer.readFloat();
-            windSpeed[i] = buffer.readFloat();
-            windDirection[i] = buffer.readFloat();
+            windX[i] = buffer.readFloat();
+            windZ[i] = buffer.readFloat();
+            thunder[i] = buffer.readFloat();
         }
         int level = buffer.readVarInt();
         ChunkPos chunkPos = new ChunkPos(buffer.readLong());
@@ -67,7 +72,7 @@ public final class UpdateWeatherChunk {
             posData[i] = buffer.readInt();
             weatherData[i] = buffer.readInt();
         }
-        return new UpdateWeatherChunk(level, chunkPos, posData, weatherData, precipitation, temperature, windSpeed, windDirection);
+        return new UpdateWeatherChunk(level, chunkPos, posData, weatherData, precipitation, temperature, windX, windZ, thunder);
     }
 
     public interface Sender {

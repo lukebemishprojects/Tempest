@@ -43,5 +43,16 @@
     },
     "offset": 184726402,
     "rate": 200
+  },
+  "thunder": {
+    "type": "tempest:noisy",
+    "density_function": {
+      "type": "minecraft:noise",
+      "noise": "tempest:broad",
+      "xz_scale": 1,
+      "y_scale": 1
+    },
+    "offset": 294458823,
+    "rate": 200
   }
 }

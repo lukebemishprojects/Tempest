@@ -36,4 +36,28 @@ public class ClientLevelMixin {
             return rainLevel;
         }
     }
+    @ModifyExpressionValue(
+        method = {
+            "getSkyDarken(F)F",
+            "getSkyColor(Lnet/minecraft/world/phys/Vec3;F)Lnet/minecraft/world/phys/Vec3;",
+            "getCloudColor(F)Lnet/minecraft/world/phys/Vec3;"
+        },
+        at = @At(
+            value = "INVOKE",
+            target = "net/minecraft/client/multiplayer/ClientLevel.getThunderLevel(F)F"
+        )
+    )
+    private float tempest$modifyThunderLevel(float rainLevel) {
+        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        BlockPos cameraBlockPos = new BlockPos(Mth.floor(cameraPos.x), Mth.floor(cameraPos.y), Mth.floor(cameraPos.z));
+        //noinspection DataFlowIssue
+        var chunk = ((ClientLevel) (Object) this).getChunkAt(cameraBlockPos);
+        var data = Services.PLATFORM.getChunkData(chunk);
+        var status = data.getWeatherStatus(cameraBlockPos);
+        if (status != null && status.thunder > rainLevel) {
+            return status.thunder;
+        } else {
+            return rainLevel;
+        }
+    }
 }

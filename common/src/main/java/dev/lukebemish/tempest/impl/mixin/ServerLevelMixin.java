@@ -1,5 +1,6 @@
 package dev.lukebemish.tempest.impl.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.WeatherContainer;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
@@ -45,5 +46,23 @@ public abstract class ServerLevelMixin extends Level implements WeatherContainer
             //noinspection DataFlowIssue
             chunkData.tick((ServerLevel) (Object) this, weatherMap);
         }
+    }
+
+    @ModifyExpressionValue(
+        method = "tickChunk(Lnet/minecraft/world/level/chunk/LevelChunk;I)V",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/server/level/ServerLevel;isThundering()Z"
+        )
+    )
+    private boolean tempest$modifyIsThundering(boolean original, LevelChunk chunk, int randomTickSpeed) {
+        if (!original) {
+            var data = Services.PLATFORM.getChunkData(chunk);
+            var status = data.getWeatherStatus(chunk.getPos().getBlockAt(8, 64, 8));
+            if (status != null && status.thunder > 0) {
+                return true;
+            }
+        }
+        return original;
     }
 }
