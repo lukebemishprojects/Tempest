@@ -11,6 +11,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -77,7 +78,12 @@ public abstract class LivingEntityMixin extends Entity {
                     var status = weatherData.getWeatherStatus(pos);
                     if ((this.tickCount & 8) == 0 && status != null && status.category == WeatherCategory.HAIL) {
                         var source = new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Constants.HAIL_DAMAGE_TYPE));
-                        this.hurt(source, status.intensity / 2);
+                        //noinspection ConstantValue
+                        if ((Object) this instanceof Player) {
+                            this.hurt(source, status.intensity / 2);
+                        } else {
+                            this.hurt(source, 0);
+                        }
                     }
                 }
             }
