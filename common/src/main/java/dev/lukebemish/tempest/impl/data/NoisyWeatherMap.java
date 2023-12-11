@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.tempest.impl.Constants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
@@ -73,7 +72,7 @@ public class NoisyWeatherMap implements WeatherMapData.WeatherMap {
                 return z;
             }
         });
-        return Mth.clamp((float) computed, -1, 1);
+        return (float) computed;
     }
 
     public static void register() {

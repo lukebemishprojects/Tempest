@@ -22,7 +22,7 @@
     "offset": 826574937,
     "rate": 200
   },
-  "wind_speed": {
+  "wind_x": {
     "type": "tempest:noisy",
     "density_function": {
       "type": "minecraft:noise",
@@ -33,7 +33,7 @@
     "offset": 375628563,
     "rate": 200
   },
-  "wind_direction": {
+  "wind_z": {
     "type": "tempest:noisy",
     "density_function": {
       "type": "minecraft:noise",

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -70,12 +71,12 @@ public abstract class LivingEntityMixin extends Entity {
         at = @At("HEAD")
     )
     private void tempest$baseTick(CallbackInfo ci) {
-        if (!this.level().isClientSide()) {
-            if (this.isAlive()) {
-                var pos = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
-                if (level().canSeeSky(pos)){
-                    var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos));
-                    var status = weatherData.getWeatherStatus(pos);
+        if (this.isAlive()) {
+            var pos = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
+            if (level().canSeeSky(pos)){
+                var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos));
+                var status = weatherData.getWeatherStatus(pos);
+                if (!this.level().isClientSide()) {
                     if ((this.tickCount & 8) == 0 && status != null && status.category == WeatherCategory.HAIL) {
                         var source = new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Constants.HAIL_DAMAGE_TYPE));
                         //noinspection ConstantValue
@@ -83,6 +84,17 @@ public abstract class LivingEntityMixin extends Entity {
                             this.hurt(source, status.intensity / 2);
                         } else {
                             this.hurt(source, 0);
+                        }
+                    }
+                }
+                if (status != null && status.speed > 0.6) {
+                    if (!this.onGround() || status.speed > 1) {
+                        var cDelta = this.getDeltaMovement();
+                        var windDelta = new Vec3(status.windX, 0, status.windZ);
+                        double inDirection = cDelta.dot(windDelta);
+                        if (inDirection < status.speed) {
+                            double mult = (status.speed*0.25 - inDirection) * 0.1;
+                            this.setDeltaMovement(cDelta.add(windDelta.scale(mult)));
                         }
                     }
                 }

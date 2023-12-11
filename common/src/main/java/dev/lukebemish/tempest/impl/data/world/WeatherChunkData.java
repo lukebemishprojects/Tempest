@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
@@ -38,8 +39,8 @@ public class WeatherChunkData {
 
     private float[] precipitation = new float[] {-0.5f, -0.5f, -0.5f, -0.5f};
     private float[] temperature = new float[] {0.5f, 0.5f, 0.5f, 0.5f};
-    private float[] windSpeed = new float[4];
-    private float[] windDirection = new float[4];
+    private float[] windX = new float[4];
+    private float[] windZ = new float[4];
 
     private static final int[] XS = new int[] {0, 0, 16, 16};
     private static final int[] ZS = new int[] {0, 16, 0, 16};
@@ -84,7 +85,7 @@ public class WeatherChunkData {
                 updateQueue.clear();
                 this.dirty = false;
             }
-            var packet = new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windSpeed, windDirection);
+            var packet = new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ);
             UpdateWeatherChunk.Sender.SENDER.send(packet, chunk);
         }
     }
@@ -102,7 +103,7 @@ public class WeatherChunkData {
             weatherData[i] = entry.getValue().data();
             i++;
         }
-        return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windSpeed, windDirection);
+        return new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ);
     }
 
     public WeatherData query(BlockPos pos) {
@@ -139,8 +140,8 @@ public class WeatherChunkData {
         for (int i = 0; i < 4; i++) {
             stats.putFloat("precipitation" + i, precipitation[i]);
             stats.putFloat("temperature" + i, temperature[i]);
-            stats.putFloat("windSpeed" + i, windSpeed[i]);
-            stats.putFloat("windDirection" + i, windDirection[i]);
+            stats.putFloat("windX" + i, windX[i]);
+            stats.putFloat("windZ" + i, windZ[i]);
         }
         tag.put("stats", stats);
         return tag;
@@ -162,8 +163,8 @@ public class WeatherChunkData {
             for (int i = 0; i < 4; i++) {
                 precipitation[i] = stats.getFloat("precipitation" + i);
                 temperature[i] = stats.getFloat("temperature" + i);
-                windSpeed[i] = stats.getFloat("windSpeed" + i);
-                windDirection[i] = stats.getFloat("windDirection" + i);
+                windX[i] = stats.getFloat("windX" + i);
+                windZ[i] = stats.getFloat("windZ" + i);
             }
         }
     }
@@ -176,12 +177,12 @@ public class WeatherChunkData {
         return relative(pos, precipitation);
     }
 
-    public float windSpeed(BlockPos pos) {
-        return relative(pos, windSpeed);
+    public float windX(BlockPos pos) {
+        return relative(pos, windX);
     }
 
-    public float windDirection(BlockPos pos) {
-        return relative(pos, windDirection);
+    public float windZ(BlockPos pos) {
+        return relative(pos, windZ);
     }
 
     private static float relative(BlockPos pos, float[] corners) {
@@ -205,22 +206,26 @@ public class WeatherChunkData {
                 var surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mutablePos);
                 var biome = chunk.getLevel().getBiome(surface).value();
 
-                temperature[i] = weatherMap.temperature().query(x+XS[i], z+ZS[i], gameTime);
+                float temp = weatherMap.temperature().query(x+XS[i], z+ZS[i], gameTime);
 
                 if (!biome.warmEnoughToRain(surface)) {
-                    temperature[i] -= 0.85f;
+                    temp -= 0.85f;
                 } else if (biome.getBaseTemperature() > 1.5f) {
-                    temperature[i] += 0.7f;
+                    temp += 0.7f;
                 }
 
-                precipitation[i] = weatherMap.precipitation().query(x+XS[i], z+ZS[i], gameTime);
+                temperature[i] = Mth.clamp(temp, -1, 1);
+
+                float precip = weatherMap.precipitation().query(x+XS[i], z+ZS[i], gameTime);
 
                 if (!biome.hasPrecipitation()) {
                     precipitation[i] -= 0.6f;
                 }
 
-                windSpeed[i] = (weatherMap.windSpeed().query(x+XS[i], z+ZS[i], gameTime) + 1) / 2;
-                windDirection[i] = weatherMap.windDirection().query(x+XS[i], z+ZS[i], gameTime);
+                precipitation[i] = Mth.clamp(precip, -1, 1);
+
+                windX[i] = weatherMap.windX().query(x+XS[i], z+ZS[i], gameTime);
+                windZ[i] = weatherMap.windZ().query(x+XS[i], z+ZS[i], gameTime);
             }
             this.dirty = true;
         }
@@ -478,8 +483,8 @@ public class WeatherChunkData {
     void update(Level level, UpdateWeatherChunk updateWeatherChunk) {
         this.temperature = updateWeatherChunk.temperature;
         this.precipitation = updateWeatherChunk.precipitation;
-        this.windSpeed = updateWeatherChunk.windSpeed;
-        this.windDirection = updateWeatherChunk.windDirection;
+        this.windX = updateWeatherChunk.windX;
+        this.windZ = updateWeatherChunk.windZ;
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 0; i < updateWeatherChunk.posData.length; i++) {
@@ -505,7 +510,7 @@ public class WeatherChunkData {
             } else {
                 category = WeatherCategory.RAIN;
             }
-            return new WeatherCategory.WeatherStatus(category, precipitation(pos), windSpeed(pos), windDirection(pos));
+            return new WeatherCategory.WeatherStatus(category, precipitation(pos), windX(pos), windZ(pos));
         }
         return null;
     }

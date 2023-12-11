@@ -15,15 +15,15 @@ public record WeatherMapData(
     ResourceKey<Level> level,
     WeatherMap.Provider precipitation,
     WeatherMap.Provider temperature,
-    WeatherMap.Provider windSpeed,
-    WeatherMap.Provider windDirection
+    WeatherMap.Provider windX,
+    WeatherMap.Provider windZ
 ) {
     public static final Codec<WeatherMapData> CODEC = RecordCodecBuilder.create(i -> i.group(
         ResourceKey.codec(Registries.DIMENSION).fieldOf("level").forGetter(WeatherMapData::level),
         WeatherMap.Provider.CODEC.fieldOf("precipitation").forGetter(WeatherMapData::precipitation),
         WeatherMap.Provider.CODEC.fieldOf("temperature").forGetter(WeatherMapData::temperature),
-        WeatherMap.Provider.CODEC.fieldOf("wind_speed").forGetter(WeatherMapData::windSpeed),
-        WeatherMap.Provider.CODEC.fieldOf("wind_direction").forGetter(WeatherMapData::windDirection)
+        WeatherMap.Provider.CODEC.fieldOf("wind_x").forGetter(WeatherMapData::windX),
+        WeatherMap.Provider.CODEC.fieldOf("wind_z").forGetter(WeatherMapData::windZ)
     ).apply(i, WeatherMapData::new));
 
     public interface WeatherMap {
@@ -41,15 +41,15 @@ public record WeatherMapData(
     public record Built(
         WeatherMap precipitation,
         WeatherMap temperature,
-        WeatherMap windSpeed,
-        WeatherMap windDirection
+        WeatherMap windX,
+        WeatherMap windZ
     ) {
         static Built build(WeatherMapData data, ServerLevel level) {
             return new Built(
                 data.precipitation().build(level),
                 data.temperature().build(level),
-                data.windSpeed().build(level),
-                data.windDirection().build(level)
+                data.windX().build(level),
+                data.windZ().build(level)
             );
         }
     }

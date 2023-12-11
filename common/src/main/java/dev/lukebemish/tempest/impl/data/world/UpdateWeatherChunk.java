@@ -14,15 +14,15 @@ public final class UpdateWeatherChunk {
 
     final float[] precipitation;
     final float[] temperature;
-    final float[] windSpeed;
-    final float[] windDirection;
+    final float[] windX;
+    final float[] windZ;
 
-    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float[] precipitation, float[] temperature, float[] windSpeed, float[] windDirection) {
+    public UpdateWeatherChunk(int level, ChunkPos chunkPos, int[] posData, int[] weatherData, float[] precipitation, float[] temperature, float[] windX, float[] windZ) {
         this.level = level;
         this.precipitation = precipitation;
         this.temperature = temperature;
-        this.windSpeed = windSpeed;
-        this.windDirection = windDirection;
+        this.windX = windX;
+        this.windZ = windZ;
         if (posData.length != weatherData.length) {
             throw new IllegalArgumentException("posData and weatherData must be the same length");
         }
@@ -35,8 +35,8 @@ public final class UpdateWeatherChunk {
         for (int i = 0; i < 4; i++) {
             buffer.writeFloat(precipitation[i]);
             buffer.writeFloat(temperature[i]);
-            buffer.writeFloat(windSpeed[i]);
-            buffer.writeFloat(windDirection[i]);
+            buffer.writeFloat(windX[i]);
+            buffer.writeFloat(windZ[i]);
         }
         buffer.writeVarInt(level);
         buffer.writeLong(chunkPos.toLong());

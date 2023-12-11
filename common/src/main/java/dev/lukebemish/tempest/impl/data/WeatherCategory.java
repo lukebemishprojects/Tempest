@@ -28,14 +28,14 @@ public enum WeatherCategory {
         public final float windZ;
         public final float speed;
 
-        public WeatherStatus(WeatherCategory category, float intensity, float windSpeed, float windDirection) {
+        public WeatherStatus(WeatherCategory category, float intensity, float windX, float windZ) {
             this.category = category;
             float i = Mth.sqrt(intensity);
             this.intensity = 1 - (0.7f * (1 - i));
-            this.swirl = (1 - windSpeed * windSpeed) * this.category.swirlMult;
-            this.windX = (float) Math.cos(windDirection * Math.PI);
-            this.windZ = (float) Math.sin(windDirection / Math.PI);
-            this.speed = windSpeed;
+            this.speed = Mth.sqrt(windX * windX + windZ * windZ);
+            this.swirl = (1 - speed * speed) * this.category.swirlMult;
+            this.windX = windX / this.speed;
+            this.windZ = windZ / this.speed;
         }
     }
 }

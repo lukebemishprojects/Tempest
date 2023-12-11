@@ -176,7 +176,7 @@ public class FancyPrecipitationRenderer {
 
                         Matrix4f quadRotate = new Matrix4f();
                         quadRotate.translate((float) (x - camX + 0.5), (float) (minY - camY), (float) (z - camZ + 0.5));
-                        quadRotate.rotate(-status.speed, -status.windZ, 0, status.windX);
+                        quadRotate.rotate(Mth.clamp(status.speed, 0, 1.25f), -status.windZ, 0, status.windX);
                         quadRotate.translate((float) -(x - camX + 0.5), (float) -(minY - camY), (float) -(z - camZ + 0.5));
 
                         float movement = swirlMovement * status.swirl;
