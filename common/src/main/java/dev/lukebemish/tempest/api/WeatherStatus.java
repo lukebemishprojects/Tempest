@@ -6,7 +6,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec2;
 
-public class WeatherStatus {
+@SuppressWarnings("unused")
+public final class WeatherStatus {
     private final Kind kind;
     private final float intensity;
     private final float temperature;
@@ -63,7 +64,7 @@ public class WeatherStatus {
      * @param position the position to query at
      * @return the weather status at the given position
      */
-    public WeatherStatus atPosition(Level level, BlockPos position) {
+    public static WeatherStatus atPosition(Level level, BlockPos position) {
         LevelChunk chunk = level.getChunkAt(position);
         var data = Services.PLATFORM.getChunkData(chunk);
         return data.makeApiStatus(WeatherStatus::new, position);
