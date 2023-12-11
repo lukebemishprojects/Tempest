@@ -62,22 +62,24 @@ public class FancyPrecipitationRenderer {
                     if (status != null) {
                         if (random.nextFloat() <= status.intensity) {
                             if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET || status.category == WeatherCategory.HAIL) {
-                                double xOff = random.nextDouble();
-                                double yOff = random.nextDouble();
-                                BlockState blockState = level.getBlockState(particlePos);
-                                FluidState fluidState = level.getFluidState(particlePos);
-                                VoxelShape collisionShape = blockState.getCollisionShape(level, particlePos);
-                                double topOfVoxelShape = collisionShape.max(Direction.Axis.Y, xOff, yOff);
-                                double topOfFluid = fluidState.getHeight(level, particlePos);
-                                double topOfBlock = Math.max(topOfVoxelShape, topOfFluid);
-                                ParticleOptions particle = !fluidState.is(FluidTags.LAVA) && !blockState.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockState)
-                                    ? (
+                                if (status.category != WeatherCategory.HAIL || random.nextFloat() < 0.3) {
+                                    double xOff = random.nextDouble();
+                                    double yOff = random.nextDouble();
+                                    BlockState blockState = level.getBlockState(particlePos);
+                                    FluidState fluidState = level.getFluidState(particlePos);
+                                    VoxelShape collisionShape = blockState.getCollisionShape(level, particlePos);
+                                    double topOfVoxelShape = collisionShape.max(Direction.Axis.Y, xOff, yOff);
+                                    double topOfFluid = fluidState.getHeight(level, particlePos);
+                                    double topOfBlock = Math.max(topOfVoxelShape, topOfFluid);
+                                    ParticleOptions particle = !fluidState.is(FluidTags.LAVA) && !blockState.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockState)
+                                        ? (
                                         (status.category == WeatherCategory.HAIL)
-                                        ? ParticleTypes.SNOWFLAKE
-                                        : ParticleTypes.RAIN
+                                            ? ParticleTypes.SNOWFLAKE
+                                            : ParticleTypes.RAIN
                                     ) : ParticleTypes.SMOKE;
-                                //noinspection DataFlowIssue
-                                minecraft.level.addParticle(particle, (double)particlePos.getX() + xOff, (double)particlePos.getY() + topOfBlock, (double)particlePos.getZ() + yOff, 0.0, 0.0, 0.0);
+                                    //noinspection DataFlowIssue
+                                    minecraft.level.addParticle(particle, (double) particlePos.getX() + xOff, (double) particlePos.getY() + topOfBlock, (double) particlePos.getZ() + yOff, 0.0, 0.0, 0.0);
+                                }
                             }
                         }
                     }
