@@ -1,15 +1,26 @@
 package dev.lukebemish.tempest.impl.forge.compat.embeddium;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.client.OverlaySpriteListener;
+import dev.lukebemish.tempest.impl.client.QuadHelper;
 import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.booleans.BooleanList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.embeddedt.embeddium.api.ChunkMeshEvent;
+
+import java.util.List;
+import java.util.function.Function;
 
 public class EmbeddiumCompat {
     public static void addCompat(IEventBus modBus) {
@@ -31,6 +42,7 @@ public class EmbeddiumCompat {
             frozenUps.add(atPos.frozenUp());
         }
         event.addMeshAppender(context -> {
+            RandomSource random = RandomSource.create();
             for (int i = 0; i < icedPositions.size(); i++) {
                 var pos = icedPositions.get(i);
                 var blackIce = blackIces.getInt(i);
@@ -49,6 +61,14 @@ public class EmbeddiumCompat {
                     sprite = OverlaySpriteListener.getBlackIce3();
                 }
                 var state = level.getBlockState(pos);
+                var bakedModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(state);
+                var modelData = bakedModel.getModelData(context.blockRenderView(), pos, state, ModelData.EMPTY);
+                random.setSeed(state.getSeed(pos));
+                Function<Direction, List<BakedQuad>> quadProvider = dir -> bakedModel.getQuads(state, dir, random, modelData, null);
+                var vertexConsumer = context.vertexConsumerProvider().apply(RenderType.translucent());
+                var poseStack = new PoseStack();
+                poseStack.translate(pos.getX() & 0xFF, pos.getY() & 0xFF, pos.getZ() & 0xFF);
+                QuadHelper.renderOverlayQuads(state, pos, poseStack, quadProvider, frozenUp, context.blockRenderView(), sprite, vertexConsumer);
             }
         });
     }

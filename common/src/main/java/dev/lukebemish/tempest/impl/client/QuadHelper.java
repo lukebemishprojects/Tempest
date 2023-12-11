@@ -1,8 +1,8 @@
 package dev.lukebemish.tempest.impl.client;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -10,11 +10,14 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector4f;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 
 public final class QuadHelper {
     public static final int STRIDE = DefaultVertexFormat.BLOCK.getIntegerSize();
@@ -37,7 +40,7 @@ public final class QuadHelper {
         return px;
     }
 
-    public static void processQuad(BlockState state, PoseStack poseStack, BakedQuad quad, Level level, BlockPos posUp, TextureAtlasSprite sprite, BufferBuilder translucentBuilder) {
+    public static void processQuad(BlockState state, PoseStack poseStack, BakedQuad quad, BlockAndTintGetter level, BlockPos posUp, TextureAtlasSprite sprite, VertexConsumer translucentBuilder) {
         int[] vertexData = Arrays.copyOf(quad.getVertices(), quad.getVertices().length);
         for (int vert = 0; vert < 4; vert++) {
             float px = packedPos(vert, 0, vertexData);
@@ -68,5 +71,25 @@ public final class QuadHelper {
     private static int findOffset(VertexFormatElement element) {
         var index = DefaultVertexFormat.BLOCK.getElements().indexOf(element);
         return index < 0 ? -1 : ((VertexFormatWrapper) DefaultVertexFormat.BLOCK).tempest$getOffset(index) / 4;
+    }
+
+    public static void renderOverlayQuads(BlockState state, BlockPos pos, PoseStack poseStack, Function<Direction, List<BakedQuad>> quadProvider, boolean frozenUp, BlockAndTintGetter level, TextureAtlasSprite sprite, VertexConsumer translucentBuilder) {
+        List<BakedQuad> quads = new ArrayList<>(quadProvider.apply(null));
+        if (frozenUp) {
+            for (var dir : Direction.values()) {
+                quads.addAll(quadProvider.apply(dir));
+            }
+            for (var quad : quads) {
+                processQuad(state, poseStack, quad, level, pos.offset(quad.getDirection().getNormal()), sprite, translucentBuilder);
+            }
+        } else {
+            quads.addAll(quadProvider.apply(Direction.UP));
+            var posUp = pos.above();
+            for (var quad : quads) {
+                if (quad.getDirection() == Direction.UP) {
+                    processQuad(state, poseStack, quad, level, posUp, sprite, translucentBuilder);
+                }
+            }
+        }
     }
 }

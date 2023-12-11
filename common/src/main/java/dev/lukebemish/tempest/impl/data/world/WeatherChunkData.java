@@ -60,7 +60,8 @@ public class WeatherChunkData {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (var key : data.keySet()) {
             decode(key, mutable);
-            if (mutable.getY() >= pos.minBlockY() && mutable.getY() <= pos.maxBlockY()) {
+            var data = query(mutable);
+            if (data.blackIce() >= 1 && mutable.getY() >= pos.minBlockY() && mutable.getY() <= pos.maxBlockY()) {
                 iced.add(mutable.immutable());
             }
         }

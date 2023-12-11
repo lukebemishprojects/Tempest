@@ -36,9 +36,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
 public class RebuildTaskMixin {
@@ -129,47 +129,12 @@ public class RebuildTaskMixin {
 
             var bakedModel = blockRenderDispatcher.getBlockModel(state);
 
-            //boolean flag = Minecraft.useAmbientOcclusion() && state.getLightEmission(blockAndTintGetter, pos) == 0 && bakedModel.useAmbientOcclusion(state, renderType);
             BufferBuilder translucentBuilder = buffers.builder(RenderType.translucent());
             if (setRef.get().add(RenderType.translucent())) {
                 ((DispatchRenderChunkAccessor) renderChunk).tempest$beginLayer(translucentBuilder);
             }
-            List<BakedQuad> quads = new ArrayList<>(bakedModel.getQuads(
-                state,
-                null,
-                random,
-                modelData,
-                null
-            ));
-            if (frozenUp) {
-                for (var dir : Direction.values()) {
-                    quads.addAll(bakedModel.getQuads(
-                        state,
-                        dir,
-                        random,
-                        modelData,
-                        null
-                    ));
-                }
-                for (var quad : quads) {
-                    QuadHelper.processQuad(state, poseStack, quad, level, pos.offset(quad.getDirection().getNormal()), sprite, translucentBuilder);
-                }
-            } else {
-                quads.addAll(bakedModel.getQuads(
-                    state,
-                    Direction.UP,
-                    random,
-                    modelData,
-                    null
-                ));
-                var posUp = pos.above();
-                for (var quad : quads) {
-                    if (quad.getDirection() == Direction.UP) {
-                        QuadHelper.processQuad(state, poseStack, quad, level, posUp, sprite, translucentBuilder);
-                    }
-                }
-            }
+            Function<Direction, List<BakedQuad>> quadProvider = dir -> bakedModel.getQuads(state, dir, random, modelData, null);
+            QuadHelper.renderOverlayQuads(state, pos, poseStack, quadProvider, frozenUp, level, sprite, translucentBuilder);
         }
     }
-
 }
