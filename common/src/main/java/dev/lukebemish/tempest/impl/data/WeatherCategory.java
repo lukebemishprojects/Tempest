@@ -7,7 +7,8 @@ import net.minecraft.util.Mth;
 public enum WeatherCategory {
     SNOW(new ResourceLocation("textures/environment/snow.png"), false, 1.0f),
     RAIN(new ResourceLocation("textures/environment/rain.png"), true, 0.2f),
-    SLEET(Constants.id("textures/environment/sleet.png"), true, 0.5f);
+    SLEET(Constants.id("textures/environment/sleet.png"), true, 0.5f),
+    HAIL(Constants.id("textures/environment/hail.png"), true, 0.5f);
 
     public final ResourceLocation location;
     public final boolean fastFalling;

@@ -6,6 +6,7 @@ import dev.lukebemish.tempest.impl.data.WeatherMapData;
 import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -52,6 +53,18 @@ public class WeatherChunkData {
             updateQueue.put(pos, data);
             dirty = true;
         }
+    }
+
+    public List<BlockPos> icedInSection(SectionPos pos) {
+        List<BlockPos> iced = new ArrayList<>();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        for (var key : data.keySet()) {
+            decode(key, mutable);
+            if (mutable.getY() >= pos.minBlockY() && mutable.getY() <= pos.maxBlockY()) {
+                iced.add(mutable.immutable());
+            }
+        }
+        return iced;
     }
 
     public void update() {
@@ -256,79 +269,104 @@ public class WeatherChunkData {
     private boolean meltAndFreeze(ServerLevel level, int x, int z) {
         BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, level.getBlockRandomPos(x, 0, z, 15)).below();
         float temp = temperature(waterySurface);
+        float precip = precipitation(waterySurface);
+
+        boolean repeat = false;
+
+        if (isHailing(temp, precip)) {
+            if (tryHailBreak(level, waterySurface.above())) {
+                tryHailBreak(level, waterySurface);
+            }
+            repeat = level.random.nextFloat() < precip;
+        }
+
         if (temp < 0f) {
             // add new black ice or ice
-            return tryFreezeBlock(level, waterySurface);
+            boolean frozen = tryFreezeBlock(level, waterySurface);
+            repeat = frozen || (repeat && level.random.nextBoolean());
         }
 
         if (temp > 0) {
             // melt black ice or ice
             tryMeltBlock(level, waterySurface);
-            return temp > 0.5f;
+            boolean melted = level.random.nextFloat() < temp;
+            repeat = repeat || (melted && level.random.nextBoolean());
         }
-        return false;
+
+        return repeat;
     }
 
     private boolean tryFreezeBlock(ServerLevel level, BlockPos toFreeze) {
         float precip = precipitation(toFreeze);
         float temp = temperature(toFreeze);
-        if (shouldFreeze(level, toFreeze)) {
-            var freezeState = level.getBlockState(toFreeze);
-            if (freezeState.getBlock() instanceof LiquidBlock) {
-                if (isFreezableWater(level, toFreeze)) {
-                    level.setBlockAndUpdate(toFreeze, Blocks.ICE.defaultBlockState());
-                    var data = query(toFreeze);
-                    int current = data.blackIce();
-                    if (current < 15) {
-                        data.levelBlackIce(level, toFreeze, current + 3);
+        if (validBlock(level, toFreeze)) {
+            if (shouldFreeze(level, toFreeze)) {
+                var freezeState = level.getBlockState(toFreeze);
+                if (freezeState.getBlock() instanceof LiquidBlock) {
+                    if (isFreezableWater(level, toFreeze)) {
+                        level.setBlockAndUpdate(toFreeze, Blocks.ICE.defaultBlockState());
+                        var data = query(toFreeze);
+                        int current = data.blackIce();
+                        if (current < 15) {
+                            data.levelBlackIce(level, toFreeze, current + 3);
+                        }
                     }
-                }
-                return temp < -0.5f;
-            } else {
-                if (isSleeting(temp, precip)) {
-                    var data = query(toFreeze);
-                    int current = data.blackIce();
-                    if (current < 15) {
-                        data.levelBlackIce(level, toFreeze, current + 2);
-                        var abovePos = toFreeze.above();
-                        BlockState aboveState;
-                        while ((aboveState = level.getBlockState(abovePos)).is(Constants.FREEZES_UP)) {
-                            if (aboveState.is(Constants.FREEZES_UP)) {
-                                var aboveData = query(abovePos);
-                                int aboveCurrent = aboveData.blackIce();
-                                if (aboveCurrent < 15) {
-                                    aboveData.levelBlackIce(level, abovePos, aboveCurrent + 2);
+                    return level.random.nextFloat() < -temp;
+                } else {
+                    if (isSleeting(temp, precip)) {
+                        var data = query(toFreeze);
+                        int current = data.blackIce();
+                        if (current < 15) {
+                            data.levelBlackIce(level, toFreeze, current + 2);
+                            var abovePos = toFreeze.above();
+                            BlockState aboveState;
+                            while ((aboveState = level.getBlockState(abovePos)).is(Constants.FREEZES_UP)) {
+                                if (aboveState.is(Constants.FREEZES_UP)) {
+                                    var aboveData = query(abovePos);
+                                    int aboveCurrent = aboveData.blackIce();
+                                    if (aboveCurrent < 15) {
+                                        aboveData.levelBlackIce(level, abovePos, aboveCurrent + 2);
+                                    }
+                                }
+                                abovePos = abovePos.above();
+                            }
+                        }
+                        return level.random.nextFloat() < precip;
+                    } else if (isSnowing(temp, precip)) {
+                        BlockPos toSnow = toFreeze.above();
+                        var state = level.getBlockState(toSnow);
+                        if (state.getBlock() == Blocks.SNOW) {
+                            int levels = state.getValue(SnowLayerBlock.LAYERS);
+                            BlockState newState;
+                            if (levels < 7) {
+                                newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
+                            } else {
+                                if (level.random.nextFloat() < 0.75f) {
+                                    newState = Blocks.SNOW_BLOCK.defaultBlockState();
+                                } else {
+                                    newState = Blocks.POWDER_SNOW.defaultBlockState();
                                 }
                             }
-                            abovePos = abovePos.above();
+                            level.setBlockAndUpdate(toSnow, newState);
+                            Block.pushEntitiesUp(state, newState, level, toSnow);
+                        } else if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
+                            level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
                         }
+                        return level.random.nextFloat() < precip;
                     }
-                    return precip > 0.5f;
-                } else if (isSnowing(temp, precip)) {
-                    BlockPos toSnow = toFreeze.above();
-                    var state = level.getBlockState(toSnow);
-                    if (state.getBlock() == Blocks.SNOW) {
-                        int levels = state.getValue(SnowLayerBlock.LAYERS);
-                        BlockState newState;
-                        if (levels < 7) {
-                            newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
-                        } else {
-                            if (level.random.nextFloat() < 0.75f) {
-                                newState = Blocks.SNOW_BLOCK.defaultBlockState();
-                            } else {
-                                newState = Blocks.POWDER_SNOW.defaultBlockState();
-                            }
-                        }
-                        level.setBlockAndUpdate(toSnow, newState);
-                        Block.pushEntitiesUp(state, newState, level, toSnow);
-                    } else if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
-                        level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
-                    }
-                    return precip > 0.5f;
                 }
             }
         }
-        return precip > 0.29f && temp < -0.29;
+        return level.random.nextFloat() < (level.random.nextBoolean() ? -temp : precip);
+    }
+
+    private static boolean tryHailBreak(ServerLevel level, BlockPos toFreeze) {
+        var hailEffectState = level.getBlockState(toFreeze);
+        if (hailEffectState.is(Constants.BREAKS_WITH_HAIL)) {
+            level.destroyBlock(toFreeze, false);
+            return false;
+        }
+        return true;
     }
 
     private static boolean isSnowing(float temp, float precip) {
@@ -340,11 +378,15 @@ public class WeatherChunkData {
     }
 
     private static boolean isRaining(float temp, float precip) {
-        return precip > 0f && !isSleeting(temp, precip) && !isSnowing(temp, precip);
+        return precip > 0f && !isSleeting(temp, precip) && !isSnowing(temp, precip) && !isHailing(temp, precip);
+    }
+
+    private static boolean isHailing(float temp, float precip) {
+        return precip > 0.75f && temp < 0.5f;
     }
 
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
-        if (shouldMelt(level, toMelt)) {
+        if (validBlock(level, toMelt)) {
             var state = level.getBlockState(toMelt);
             if (state.getBlock() == Blocks.ICE) {
                 level.setBlockAndUpdate(toMelt, Blocks.WATER.defaultBlockState());
@@ -411,10 +453,10 @@ public class WeatherChunkData {
     }
 
     private boolean shouldFreeze(ServerLevel level, BlockPos toFreeze) {
-        return toFreeze.getY() >= level.getMinBuildHeight() && toFreeze.getY() < level.getMaxBuildHeight() && level.getBrightness(LightLayer.BLOCK, toFreeze) < 10;
+        return level.getBrightness(LightLayer.BLOCK, toFreeze) < 10;
     }
 
-    private boolean shouldMelt(ServerLevel level, BlockPos toFreeze) {
+    private boolean validBlock(ServerLevel level, BlockPos toFreeze) {
         return toFreeze.getY() >= level.getMinBuildHeight() && toFreeze.getY() < level.getMaxBuildHeight();
     }
 
@@ -457,6 +499,8 @@ public class WeatherChunkData {
                 category = WeatherCategory.SNOW;
             } else if (isSleeting(temp, precip)) {
                 category = WeatherCategory.SLEET;
+            } else if (isHailing(temp, precip)) {
+                category = WeatherCategory.HAIL;
             } else {
                 category = WeatherCategory.RAIN;
             }

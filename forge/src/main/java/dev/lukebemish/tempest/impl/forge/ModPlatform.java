@@ -2,6 +2,7 @@ package dev.lukebemish.tempest.impl.forge;
 
 import com.google.auto.service.AutoService;
 import dev.lukebemish.tempest.impl.Constants;
+import dev.lukebemish.tempest.impl.FastChunkLookup;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +18,13 @@ public final class ModPlatform implements Services.Platform {
 
     @Override
     public WeatherChunkData getChunkData(LevelChunk chunk) {
-        return chunk.getCapability(WEATHER_CHUNK_DATA).orElseThrow(() -> new NullPointerException("Failed to get weather chunk data"));
+        var existing = ((FastChunkLookup) chunk).tempest$getChunkData();
+        if (existing != null) {
+            return existing;
+        } else {
+            var data = chunk.getCapability(WEATHER_CHUNK_DATA).orElseThrow(() -> new NullPointerException("Failed to get weather chunk data"));
+            ((FastChunkLookup) chunk).tempest$setChunkData(data);
+            return data;
+        }
     }
 }

@@ -21,6 +21,9 @@ registries:
   architectury:
       type: maven-repository
       url: https://maven.architectury.dev/
+  blamejared:
+      type: maven-repository
+      url: https://maven.blamejared.com/
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
@@ -32,6 +35,7 @@ updates:
       - neoforged
       - lukebemish
       - architectury
+      - blamejared
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"

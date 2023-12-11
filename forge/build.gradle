@@ -44,6 +44,8 @@ dependencies {
     annotationProcessor libs.mixinextras.common
     implementation libs.mixinextras.forge
     include libs.mixinextras.forge
+
+    modCompileOnly libs.embeddium
 }
 
 // Publishing

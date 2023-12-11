@@ -17,6 +17,7 @@ public final class Constants {
     public static final Gson GSON = new GsonBuilder().setLenient().create();
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final TagKey<Block> FREEZES_UP = TagKey.create(Registries.BLOCK, id("freezes_up"));
+    public static final TagKey<Block> BREAKS_WITH_HAIL = TagKey.create(Registries.BLOCK, id("breaks_with_hail"));
 
     public static ResourceLocation id(String path) {
         return BASE.withPath(path);

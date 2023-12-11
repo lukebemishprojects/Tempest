@@ -61,7 +61,7 @@ public class FancyPrecipitationRenderer {
                     var status = data.getWeatherStatus(particlePos);
                     if (status != null) {
                         if (random.nextFloat() <= status.intensity) {
-                            if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET) {
+                            if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET || status.category == WeatherCategory.HAIL) {
                                 double xOff = random.nextDouble();
                                 double yOff = random.nextDouble();
                                 BlockState blockState = level.getBlockState(particlePos);
@@ -71,8 +71,11 @@ public class FancyPrecipitationRenderer {
                                 double topOfFluid = fluidState.getHeight(level, particlePos);
                                 double topOfBlock = Math.max(topOfVoxelShape, topOfFluid);
                                 ParticleOptions particle = !fluidState.is(FluidTags.LAVA) && !blockState.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockState)
-                                    ? ParticleTypes.RAIN
-                                    : ParticleTypes.SMOKE;
+                                    ? (
+                                        (status.category == WeatherCategory.HAIL)
+                                        ? ParticleTypes.SNOWFLAKE
+                                        : ParticleTypes.RAIN
+                                    ) : ParticleTypes.SMOKE;
                                 //noinspection DataFlowIssue
                                 minecraft.level.addParticle(particle, (double)particlePos.getX() + xOff, (double)particlePos.getY() + topOfBlock, (double)particlePos.getZ() + yOff, 0.0, 0.0, 0.0);
                             }
@@ -91,7 +94,7 @@ public class FancyPrecipitationRenderer {
         var status = data.getWeatherStatus(soundPos);
         if (status != null && random.nextInt(3) < this.rainSoundTime++) {
             this.rainSoundTime = 0;
-            if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET) {
+            if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET || status.category == WeatherCategory.HAIL) {
                 if (soundPos.getY() > cameraPos.getY() + 1
                     && level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, cameraPos).getY() > Mth.floor(cameraPos.getY())) {
                     level.playLocalSound(soundPos, SoundEvents.WEATHER_RAIN_ABOVE, SoundSource.WEATHER, 0.1F, 0.5F, false);

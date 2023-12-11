@@ -29,6 +29,10 @@ repositories {
         name = 'ParchmentMC'
         url = 'https://maven.parchmentmc.org'
     }
+    maven {
+        name = 'BlameJared'
+        url = "https://maven.blamejared.com"
+    }
 }
 
 configurations {

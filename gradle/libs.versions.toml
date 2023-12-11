@@ -22,6 +22,9 @@ managedversioning = "1.2.2"
 
 mixinextras = "0.3.1"
 
+# Compat
+embeddium = "0.2.12-git.297c03e+mc1.20.1"
+
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 
@@ -36,6 +39,8 @@ autoservice = { module = "com.google.auto.service:auto-service", version.ref = "
 
 mixinextras_common = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinextras" }
 mixinextras_forge = { module = "io.github.llamalad7:mixinextras-forge", version.ref = "mixinextras" }
+
+embeddium = { module = "org.embeddedt:embeddium-1.20.1", version.ref = "embeddium" }
 
 [plugins]
 

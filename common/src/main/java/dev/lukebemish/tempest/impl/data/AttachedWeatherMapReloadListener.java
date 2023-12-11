@@ -3,7 +3,9 @@ package dev.lukebemish.tempest.impl.data;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.lukebemish.tempest.impl.Constants;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -20,12 +22,16 @@ import java.util.*;
 
 public class AttachedWeatherMapReloadListener extends SimplePreparableReloadListener<Map<ResourceKey<Level>, WeatherMapData>> {
     public static final String DIRECTORY = Constants.MOD_ID + "/noise_maps";
-    public AttachedWeatherMapReloadListener() {
+    private final RegistryAccess registryAccess;
+
+    public AttachedWeatherMapReloadListener(RegistryAccess access) {
         super();
+        this.registryAccess = access;
     }
 
     @Override
     protected @NotNull Map<ResourceKey<Level>, WeatherMapData> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+        var ops = RegistryOps.create(JsonOps.INSTANCE, registryAccess);
         Map<ResourceKey<Level>, WeatherMapData> map = new HashMap<>();
         FileToIdConverter fileToIdConverter = FileToIdConverter.json(DIRECTORY);
         resourceManager.listPacks().forEach(packResources -> {
@@ -37,7 +43,7 @@ public class AttachedWeatherMapReloadListener extends SimplePreparableReloadList
                     ResourceLocation id = fileToIdConverter.fileToId(path);
                     try (var reader = new InputStreamReader(ioSupplier.get())) {
                         JsonElement element = GsonHelper.fromJson(Constants.GSON, reader, JsonElement.class);
-                        var result = WeatherMapData.CODEC.parse(JsonOps.INSTANCE, element);
+                        var result = WeatherMapData.CODEC.parse(ops, element);
                         if (result.result().isEmpty()) {
                             Constants.LOGGER.error("Failed to decode noise map {}: {}", id, result.error().orElseThrow().message());
                         } else {

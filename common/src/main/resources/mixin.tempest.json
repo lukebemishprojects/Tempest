@@ -12,7 +12,9 @@
     "WeatherCheckMixin",
     "BeehiveBlockEntityMixin",
     "BeeMixin",
-    "BlockStateBaseMixin"
+    "BlockStateBaseMixin",
+    "FoxMixin",
+    "LevelChunkMixin"
   ],
   "client": [
     "client.DispatchRenderChunkAccessor",
@@ -20,7 +22,8 @@
     "client.LevelRendererMixin",
     "client.FogRendererMixin",
     "client.ClientLevelMixin",
-    "client.VertexFormatMixin"
+    "client.VertexFormatMixin",
+    "client.FoxRendererMixin"
   ],
   "server": [],
   "injectors": {

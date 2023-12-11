@@ -1,0 +1,43 @@
+{
+  "values": [
+    {
+      "id": "#forge:glass",
+      "required": false
+    },
+    {
+      "id": "#forge:glass_panes",
+      "required": false
+    },
+    {
+      "id": "#c:glass_panes",
+      "required": false
+    },
+    {
+      "id": "#c:glass_blocks",
+      "required": false
+    },
+    {
+      "id": "#c:buds",
+      "required": false
+    },
+    "#minecraft:flowers",
+    "#minecraft:saplings",
+    "#minecraft:crops",
+    "minecraft:pointed_dripstone",
+    "minecraft:grass",
+    "minecraft:fern",
+    "minecraft:dead_bush",
+    "minecraft:large_fern",
+    "minecraft:tall_grass",
+    "minecraft:brown_mushroom",
+    "minecraft:red_mushroom",
+    "minecraft:crimson_fungus",
+    "minecraft:warped_fungus",
+    "minecraft:crimson_roots",
+    "minecraft:warped_roots",
+    "minecraft:weeping_vines",
+    "minecraft:nether_sprouts",
+    "minecraft:bamboo",
+    "minecraft:bamboo_sapling"
+  ]
+}
