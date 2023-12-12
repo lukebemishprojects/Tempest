@@ -9,7 +9,12 @@ public final class ClientNetworking {
 
     public static void recieveWeatherUpdate(UpdateWeatherChunk msg) {
         var level = Minecraft.getInstance().level;
-        msg.apply(Objects.requireNonNull(level));
+        msg.apply(Objects.requireNonNull(level), pos -> {
+            Minecraft.getInstance().levelRenderer.setBlocksDirty(
+                    pos.getX(), pos.getY(), pos.getZ(),
+                    pos.getX(), pos.getY(), pos.getZ()
+            );
+        });
     }
 
     private ClientNetworking() {}

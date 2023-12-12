@@ -9,13 +9,13 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -26,18 +26,18 @@ public final class QuadHelper {
 
     private static float directionU(float px, float py, float pz, Direction direction) {
         if (direction == Direction.UP || direction == Direction.DOWN) {
-            return px;
+            return Mth.clamp(px, 0, 1);
         }
-        return py;
+        return Mth.clamp(py, 0, 1);
     }
 
     private static float directionV(float px, float py, float pz, Direction direction) {
         if (direction == Direction.UP || direction == Direction.DOWN) {
-            return pz;
+            return Mth.clamp(pz, 0, 1);
         } else if (direction == Direction.EAST || direction == Direction.WEST) {
-            return pz;
+            return Mth.clamp(pz, 0, 1);
         }
-        return px;
+        return Mth.clamp(px, 0, 1);
     }
 
     public static void processQuad(BlockState state, Matrix4f pose, BakedQuad quad, BlockAndTintGetter level, BlockPos posUp, TextureAtlasSprite sprite, VertexConsumer translucentBuilder) {

@@ -1,10 +1,13 @@
 package dev.lukebemish.tempest.impl.data.world;
 
 import dev.lukebemish.tempest.impl.Services;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
+
+import java.util.function.Consumer;
 
 public final class UpdateWeatherChunk {
     private final int level;
@@ -81,9 +84,9 @@ public final class UpdateWeatherChunk {
         void send(UpdateWeatherChunk packet, LevelChunk chunk);
     }
 
-    public void apply(Level level) {
+    public void apply(Level level, Consumer<BlockPos> posUpdater) {
         var chunk = level.getChunk(chunkPos.x, chunkPos.z);
         var chunkData = Services.PLATFORM.getChunkData(chunk);
-        chunkData.update(level, this);
+        chunkData.update(this, posUpdater);
     }
 }

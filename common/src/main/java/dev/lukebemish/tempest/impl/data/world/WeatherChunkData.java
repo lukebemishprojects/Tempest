@@ -13,7 +13,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -30,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class WeatherChunkData {
     final Int2ObjectMap<WeatherData.Concrete> data = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
@@ -519,7 +519,7 @@ public class WeatherChunkData {
         return false;
     }
 
-    void update(Level level, UpdateWeatherChunk updateWeatherChunk) {
+    void update(UpdateWeatherChunk updateWeatherChunk, Consumer<BlockPos> posUpdater) {
         this.temperature = updateWeatherChunk.temperature;
         this.precipitation = updateWeatherChunk.precipitation;
         this.windX = updateWeatherChunk.windX;
@@ -532,7 +532,7 @@ public class WeatherChunkData {
             int value = updateWeatherChunk.weatherData[i];
             decode(key, pos);
             query(pos).data(value);
-            level.setBlock(pos, level.getBlockState(pos), 3);
+            posUpdater.accept(pos);
         }
     }
 
