@@ -57,11 +57,11 @@ if (System.getenv('CURSEFORGE_KEY')) {
     tasks.register('curseforge', TaskPublishCurseForge) {
         disableVersionDetection()
         apiToken = System.getenv('CURSEFORGE_KEY')
-        def projectId = '577096'
+        def projectId = '948439'
         def mainFile = upload(projectId, tasks.remapJar)
-        mainFile.displayName = "Dynamic Asset Generator [NeoForge] v$project.version"
+        mainFile.displayName = "Tempest [Forge] v$project.version"
         mainFile.releaseType = "${project.release_type}"
-        mainFile.addModLoader('NeoForge')
+        mainFile.addModLoader('Forge')
         mainFile.addGameVersion("${libs.versions.minecraft.get()}")
         mainFile.changelog = ''
     }
@@ -74,12 +74,12 @@ if (System.getenv('CURSEFORGE_KEY')) {
 if (System.getenv('MODRINTH_KEY')) {
     modrinth {
         token = System.getenv('MODRINTH_KEY')
-        projectId = '83pFEQVb'
+        projectId = 'YuZD6Tkx'
         versionNumber = "$project.version"
         versionType = "${project.release_type}"
         detectLoaders = false
         uploadFile = remapJar
         gameVersions = ["${libs.versions.minecraft.get()}"]
-        loaders = ['neoforge']
+        loaders = ['forge']
     }
 }

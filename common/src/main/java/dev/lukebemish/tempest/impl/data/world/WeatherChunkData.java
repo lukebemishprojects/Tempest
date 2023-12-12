@@ -48,6 +48,8 @@ public class WeatherChunkData {
     private static final int[] XS = new int[] {0, 0, 16, 16};
     private static final int[] ZS = new int[] {0, 16, 0, 16};
 
+    private boolean initialized;
+
     public WeatherChunkData(LevelChunk chunk) {
         this.chunk = chunk;
     }
@@ -206,7 +208,8 @@ public class WeatherChunkData {
         int x = chunk.getPos().getMinBlockX();
         int z = chunk.getPos().getMinBlockZ();
 
-        if (level.random.nextInt(16) == 0) {
+        if (!initialized || level.random.nextInt(8) == 0) {
+            initialized = true;
             long gameTime = chunk.getLevel().getGameTime();
             BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
             for (int i = 0; i < 4; i++) {
@@ -218,7 +221,7 @@ public class WeatherChunkData {
                 float temp = weatherMap.temperature().query(x+XS[i], z+ZS[i], gameTime);
 
                 if (!biome.warmEnoughToRain(surface)) {
-                    temp -= 0.85f;
+                    temp -= 0.95f;
                 } else if (biome.getBaseTemperature() > 1.5f) {
                     temp += 0.7f;
                 }
