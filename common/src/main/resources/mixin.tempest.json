@@ -12,6 +12,7 @@
     "WeatherCheckMixin",
     "BeehiveBlockEntityMixin",
     "BeeMixin",
+    "BeePollinateMixin",
     "BlockStateBaseMixin",
     "FoxMixin",
     "LevelChunkMixin",

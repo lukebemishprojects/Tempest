@@ -2,22 +2,30 @@ package dev.lukebemish.tempest.impl.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import dev.lukebemish.tempest.impl.Services;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Bee;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Bee.class)
-public abstract class BeeMixin extends Entity {
-    public BeeMixin(EntityType<?> entityType, Level level) {
-        super(entityType, level);
+@Mixin(targets = "net.minecraft.world.entity.animal.Bee$BeePollinateGoal")
+public class BeePollinateMixin {
+    @Unique
+    private Bee bee;
+
+    @Inject(
+        method = "<init>(Lnet/minecraft/world/entity/animal/Bee;)V",
+        at = @At("RETURN")
+    )
+    private void tempest$init(Bee bee, CallbackInfo ci) {
+        this.bee = bee;
     }
 
     @ModifyExpressionValue(
         method = {
-            "wantsToEnterHive()Z"
+            "canBeeUse()Z",
+            "canBeeContinueToUse()Z"
         },
         at = @At(
             value = "INVOKE",
@@ -28,9 +36,9 @@ public abstract class BeeMixin extends Entity {
         boolean original
     ) {
         if (!original) {
-            var pos = this.blockPosition();
+            var pos = this.bee.blockPosition();
             //noinspection resource
-            var data = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos));
+            var data = Services.PLATFORM.getChunkData(this.bee.level().getChunkAt(pos));
             var status = data.getWeatherStatus(pos);
             if (status != null) {
                 return true;
