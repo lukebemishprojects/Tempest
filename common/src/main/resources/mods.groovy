@@ -26,7 +26,6 @@ ModsDotGroovy.make {
                 forge = ">=${this.libs.versions.forge}"
             }
 
-            /*
             onFabric {
                 mod 'fabricloader', {
                     versionRange = ">=${this.libs.versions.fabric.loader}"
@@ -35,7 +34,13 @@ ModsDotGroovy.make {
                     versionRange = ">=${this.libs.versions.fabric.api.split(/\+/)[0]}"
                 }
             }
-            */
         }
+    }
+
+    onFabric {
+        mixins = [
+            'mixin.tempest.json',
+            'mixin.fabriquilt.tempest.json'
+        ]
     }
 }

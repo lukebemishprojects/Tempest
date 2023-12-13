@@ -5,8 +5,8 @@ parchment_mappings = "2023.08.20"
 
 forge = "1.20.1-47.2.17"
 
-fabric_loader = "0.14.24"
-#fabric_api = "0.90.4+1.20.2"
+fabric_loader = "0.15.1"
+fabric_api = "0.91.0+1.20.1"
 
 mdg_plugin = "1.4.3"
 mdg_dsl = "1.5.1"
@@ -29,7 +29,7 @@ embeddium = "0.2.12-git.170afb8+mc1.20.1"
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 
 fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
-#fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
+fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
 
 forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
 

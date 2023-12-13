@@ -1,5 +1,6 @@
 package dev.lukebemish.tempest.impl.forge;
 
+import dev.lukebemish.tempest.impl.FastChunkLookup;
 import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +21,14 @@ record WeatherDataProvider(WeatherChunkData data,
     }
 
     static void attachCapabilities(AttachCapabilitiesEvent<LevelChunk> event) {
-        final WeatherChunkData data = new WeatherChunkData(event.getObject());
+        var holder = (FastChunkLookup) event.getObject();
+        final WeatherChunkData data;
+        if (holder.tempest$getChunkData() == null) {
+            data = new WeatherChunkData(event.getObject());
+            holder.tempest$setChunkData(data);
+        } else {
+            data = holder.tempest$getChunkData();
+        }
         final LazyOptional<WeatherChunkData> lazy = LazyOptional.of(() -> data);
         event.addCapability(ModPlatform.WEATHER_CHUNK_DATA_LOCATION, new WeatherDataProvider(data, lazy));
     }

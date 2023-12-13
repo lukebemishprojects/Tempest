@@ -35,4 +35,4 @@ plugins {
 }
 
 rootProject.name = 'tempest'
-include("common", "forge")
+include("common", "forge", "fabriquilt")

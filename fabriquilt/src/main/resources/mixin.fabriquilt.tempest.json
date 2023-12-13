@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.lukebemish.tempest.impl.fabriquilt.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ReloadableServerResourcesMixin"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "tempest.refmap.json"
+}

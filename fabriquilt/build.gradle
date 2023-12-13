@@ -1,0 +1,69 @@
+plugins {
+    id 'convention.consumer'
+    alias libs.plugins.curseforgegradle
+    alias libs.plugins.minotaur
+    alias libs.plugins.architectury.loom
+}
+
+loom {
+    mixin {
+        defaultRefmapName.set "tempest.refmap.json"
+    }
+    runs {
+        client {
+            ideConfigGenerated(true)
+        }
+        server {
+            ideConfigGenerated(true)
+        }
+    }
+}
+
+dependencies {
+    minecraft libs.minecraft
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.mappings.get()}@zip")
+    }
+
+    compileOnly libs.autoservice
+    annotationProcessor libs.autoservice
+
+    modImplementation libs.fabric.loader
+    modImplementation libs.fabric.api
+}
+
+// Publishing
+
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
+if (System.getenv('CURSEFORGE_KEY')) {
+    tasks.register('curseforge', TaskPublishCurseForge) {
+        disableVersionDetection()
+        apiToken = System.getenv('CURSEFORGE_KEY')
+        def projectId = '948439'
+        def mainFile = upload(projectId, tasks.remapJar)
+        mainFile.displayName = "Tempest [Fabric/Quilt] v$project.version"
+        mainFile.releaseType = "${project.release_type}"
+        mainFile.addModLoader('Fabric', 'Quilt')
+        mainFile.addGameVersion("${libs.versions.minecraft.get()}")
+        mainFile.changelog = ''
+    }
+
+    afterEvaluate {
+        tasks.curseforge.dependsOn tasks.remapJar
+    }
+}
+
+if (System.getenv('MODRINTH_KEY')) {
+    modrinth {
+        token = System.getenv('MODRINTH_KEY')
+        projectId = 'YuZD6Tkx'
+        versionNumber = "$project.version"
+        versionType = "${project.release_type}"
+        detectLoaders = false
+        uploadFile = remapJar
+        gameVersions = ["${libs.versions.minecraft.get()}"]
+        loaders = ['fabric', 'quilt']
+    }
+}

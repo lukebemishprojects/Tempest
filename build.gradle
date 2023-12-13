@@ -82,7 +82,7 @@ modsDotGroovy {
     platform 'multiloader'
     multiloader {
         forge = [project(':forge')]
-        fabric = []
+        fabric = [project(':fabriquilt')]
         quilt = []
     }
 }
