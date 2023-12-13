@@ -24,6 +24,32 @@ public sealed interface WeatherData {
     void frozenUp(boolean stuck);
     boolean frozenUp();
 
+    final class Empty implements WeatherData {
+        public static final Empty INSTANCE = new Empty();
+
+        private Empty() {}
+
+
+        @Override
+        public void blackIce(int blackIce) {}
+
+        @Override
+        public int blackIce() {
+            return 0;
+        }
+
+        @Override
+        public void data(int value) {}
+
+        @Override
+        public void frozenUp(boolean stuck) {}
+
+        @Override
+        public boolean frozenUp() {
+            return false;
+        }
+    }
+
     final class Reference implements WeatherData {
         private final WeatherChunkData intrusive;
         private final int pos;

@@ -31,6 +31,15 @@ dependencies {
 
     modImplementation libs.fabric.loader
     modImplementation libs.fabric.api
+
+    modImplementation(libs.cca.base) {
+        transitive = false
+    }
+    modImplementation(libs.cca.chunk) {
+        transitive = false
+    }
+    include libs.cca.base
+    include libs.cca.chunk
 }
 
 // Publishing

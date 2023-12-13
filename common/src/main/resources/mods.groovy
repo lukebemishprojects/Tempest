@@ -35,12 +35,24 @@ ModsDotGroovy.make {
                 }
             }
         }
+
+        onFabric {
+            entrypoints {
+                entrypoint 'main', 'dev.lukebemish.tempest.impl.fabriquilt.ModEntrypoint'
+                entrypoint 'cardinal-components', 'dev.lukebemish.tempest.impl.fabriquilt.ComponentRegistration'
+            }
+        }
     }
 
     onFabric {
         mixins = [
             'mixin.tempest.json',
             'mixin.fabriquilt.tempest.json'
+        ]
+        custom = [
+            'cardinal-components': [
+                'tempest:weather_chunk_data'
+            ]
         ]
     }
 }

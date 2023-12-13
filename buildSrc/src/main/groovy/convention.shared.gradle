@@ -33,6 +33,10 @@ repositories {
         name = 'BlameJared'
         url = "https://maven.blamejared.com"
     }
+    maven {
+        name = "Ladysnake Mods"
+        url = 'https://maven.ladysnake.org/releases'
+    }
 }
 
 configurations {

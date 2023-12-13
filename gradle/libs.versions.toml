@@ -22,6 +22,8 @@ managedversioning = "1.2.2"
 
 mixinextras = "0.3.1"
 
+cca = "5.2.2"
+
 # Compat
 embeddium = "0.2.12-git.170afb8+mc1.20.1"
 
@@ -41,6 +43,9 @@ mixinextras_common = { module = "io.github.llamalad7:mixinextras-common", versio
 mixinextras_forge = { module = "io.github.llamalad7:mixinextras-forge", version.ref = "mixinextras" }
 
 embeddium = { module = "org.embeddedt:embeddium-1.20.1", version.ref = "embeddium" }
+
+cca-base = { module = "dev.onyxstudios.cardinal-components-api:cardinal-components-base", version.ref = "cca" }
+cca-chunk = { module = "dev.onyxstudios.cardinal-components-api:cardinal-components-chunk", version.ref = "cca" }
 
 [plugins]
 

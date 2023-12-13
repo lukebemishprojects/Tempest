@@ -13,8 +13,6 @@ public class ModEntrypoint implements ModInitializer {
     public void onInitialize() {
         Constants.bootstrap();
 
-        // TODO: attach chunk data
-
         // TODO: send data on chunk watch
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) ->
@@ -22,8 +20,6 @@ public class ModEntrypoint implements ModInitializer {
         );
 
         ServerLifecycleEvents.SERVER_STARTED.register(AttachedWeatherMapReloadListener::applyToServer);
-
-        ModNetworking.setup();
 
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             ClientEntrypoint.init();

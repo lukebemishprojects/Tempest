@@ -4,9 +4,14 @@
   "package": "dev.lukebemish.tempest.impl.fabriquilt.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ReloadableServerResourcesMixin"
+    "ReloadableServerResourcesMixin",
+    "ChunkMapMixin",
+    "LivingEntityMixin",
+    "PlayerListMixin"
   ],
-  "client": [],
+  "client": [
+    "client.RebuildTaskMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1

@@ -11,8 +11,8 @@ public final class ClientNetworking {
         var level = Minecraft.getInstance().level;
         msg.apply(Objects.requireNonNull(level), pos -> {
             Minecraft.getInstance().levelRenderer.setBlocksDirty(
-                    pos.getX(), pos.getY(), pos.getZ(),
-                    pos.getX(), pos.getY(), pos.getZ()
+                pos.getX(), pos.getY(), pos.getZ(),
+                pos.getX(), pos.getY(), pos.getZ()
             );
         });
     }

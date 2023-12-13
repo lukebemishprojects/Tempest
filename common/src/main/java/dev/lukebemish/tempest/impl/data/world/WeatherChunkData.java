@@ -37,7 +37,7 @@ public class WeatherChunkData {
     private final LevelChunk chunk;
 
     private final Int2IntMap updateQueue = new Int2IntOpenHashMap();
-    private boolean dirty = false;
+    private boolean networkingDirty = false;
 
     private float[] precipitation = new float[] {-0.5f, -0.5f, -0.5f, -0.5f};
     private float[] temperature = new float[] {0.5f, 0.5f, 0.5f, 0.5f};
@@ -50,14 +50,28 @@ public class WeatherChunkData {
 
     private boolean initialized;
 
-    public WeatherChunkData(LevelChunk chunk) {
+    private final @Nullable Runnable setDirtyCallback;
+
+    public WeatherChunkData(LevelChunk chunk, @Nullable Runnable setDirtyCallback) {
         this.chunk = chunk;
+        this.setDirtyCallback = setDirtyCallback;
     }
 
-    void update(int pos, int data) {
+    public WeatherChunkData(LevelChunk chunk) {
+        this(chunk, null);
+    }
+
+    protected void update(int pos, int data) {
         synchronized (updateQueue) {
             updateQueue.put(pos, data);
-            dirty = true;
+            markDirty();
+        }
+    }
+
+    private void markDirty() {
+        networkingDirty = true;
+        if (setDirtyCallback != null) {
+            setDirtyCallback.run();
         }
     }
 
@@ -75,7 +89,7 @@ public class WeatherChunkData {
     }
 
     public void update() {
-        if (this.dirty) {
+        if (this.networkingDirty) {
             int[] posData;
             int[] weatherData;
             synchronized (updateQueue) {
@@ -88,7 +102,7 @@ public class WeatherChunkData {
                     i++;
                 }
                 updateQueue.clear();
-                this.dirty = false;
+                this.networkingDirty = false;
             }
             var packet = new UpdateWeatherChunk(LevelIdMap.CURRENT.id(chunk.getLevel().dimension()), chunk.getPos(), posData, weatherData, precipitation, temperature, windX, windZ, thunder);
             UpdateWeatherChunk.Sender.SENDER.send(packet, chunk);
@@ -240,7 +254,7 @@ public class WeatherChunkData {
                 windZ[i] = weatherMap.windZ().query(x+XS[i], z+ZS[i], gameTime);
                 thunder[i] = Mth.clamp(weatherMap.thunder().query(x+XS[i], z+ZS[i], gameTime), -1, 1);
             }
-            this.dirty = true;
+            this.markDirty();
         }
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
