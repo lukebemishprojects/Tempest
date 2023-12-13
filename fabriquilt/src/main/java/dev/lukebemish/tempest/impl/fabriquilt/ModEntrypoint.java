@@ -13,8 +13,6 @@ public class ModEntrypoint implements ModInitializer {
     public void onInitialize() {
         Constants.bootstrap();
 
-        // TODO: send data on chunk watch
-
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) ->
             AttachedWeatherMapReloadListener.applyToServer(server)
         );
