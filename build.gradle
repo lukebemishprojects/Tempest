@@ -31,7 +31,7 @@ managedVersioning {
                     setupGitUser()
                 }
                 readOnly.set false
-                gradlew 'tagRelease'
+                gradlew 'Tag Release', 'tagRelease'
                 gradlew 'Build', 'build'
                 step {
                     run.set 'git push && git push --tags'

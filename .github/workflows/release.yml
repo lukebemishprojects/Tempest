@@ -37,9 +37,9 @@
                     "uses": "fregante/setup-git-user@v2"
                 },
                 {
-                    "name": "tagRelease",
-                    "run": "./gradlew ",
-                    "id": "tagrelease",
+                    "name": "Tag Release",
+                    "run": "./gradlew tagRelease",
+                    "id": "tag_release",
                     "env": {
                         "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
                         "RELEASE_MAVEN_USER": "github",
