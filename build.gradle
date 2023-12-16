@@ -30,15 +30,15 @@ managedVersioning {
                 step {
                     setupGitUser()
                 }
+                readOnly.set false
                 gradlew 'tagRelease'
                 gradlew 'Build', 'build'
-                readOnly.set false
-                gradlew 'Publish', 'publish', 'modrinth', 'curseforge'
-                mavenRelease('github')
-                modPublishing()
                 step {
                     run.set 'git push && git push --tags'
                 }
+                gradlew 'Publish', 'publish', 'modrinth', 'curseforge'
+                mavenRelease('github')
+                modPublishing()
             }
         }
         build_pr {
