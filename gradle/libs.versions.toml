@@ -53,4 +53,4 @@ managedversioning = { id = "dev.lukebemish.managedversioning", version.ref = "ma
 mdg_plugin = { id = "org.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
 architectury_loom = { id = "dev.architectury.loom", version.ref = "architectury_loom" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
-curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.16"}
+curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.17"}
