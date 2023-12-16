@@ -28,7 +28,6 @@ public class LevelIdMap {
     public void encoder(FriendlyByteBuf buffer) {
         buffer.writeInt(keys.size());
         for (ResourceKey<Level> key : keys) {
-            buffer.writeInt(map.getInt(key));
             buffer.writeResourceKey(key);
         }
     }
