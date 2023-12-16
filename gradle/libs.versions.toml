@@ -16,7 +16,7 @@ architectury_loom = "1.4.367"
 
 jetbrains_annotations = "24.0.1"
 
-minotaur = "2.8.3"
+minotaur = "2.8.7"
 
 managedversioning = "1.2.2"
 
