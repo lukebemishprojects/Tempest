@@ -23,7 +23,7 @@ ModsDotGroovy.make {
             }
 
             onForge {
-                forge = ">=${this.libs.versions.forge}"
+                forge = ">=${this.libs.versions.forge.split(/-/)[1]}"
             }
 
             onFabric {
