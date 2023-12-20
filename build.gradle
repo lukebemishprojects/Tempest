@@ -16,6 +16,7 @@ managedVersioning {
             workflowDispatch.set(true)
             onBranches.add '1.*'
             gradleJob {
+                buildCache()
                 name.set 'build'
                 gradlew 'Build', 'build'
                 gradlew 'Publish', 'publish'
@@ -30,6 +31,7 @@ managedVersioning {
                 step {
                     setupGitUser()
                 }
+                buildCache()
                 readOnly.set false
                 gradlew 'Tag Release', 'tagRelease'
                 gradlew 'Build', 'build'

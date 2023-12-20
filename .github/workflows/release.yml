@@ -41,6 +41,9 @@
                     "run": "./gradlew tagRelease",
                     "id": "tag_release",
                     "env": {
+                        "BUILD_CACHE_PASSWORD": "${{ secrets.BUILD_CACHE_PASSWORD }}",
+                        "BUILD_CACHE_USER": "${{ secrets.BUILD_CACHE_USER }}",
+                        "BUILD_CACHE_URL": "${{ secrets.BUILD_CACHE_URL }}",
                         "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
                         "RELEASE_MAVEN_USER": "github",
                         "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/releases/",
@@ -53,6 +56,9 @@
                     "run": "./gradlew build",
                     "id": "build",
                     "env": {
+                        "BUILD_CACHE_PASSWORD": "${{ secrets.BUILD_CACHE_PASSWORD }}",
+                        "BUILD_CACHE_USER": "${{ secrets.BUILD_CACHE_USER }}",
+                        "BUILD_CACHE_URL": "${{ secrets.BUILD_CACHE_URL }}",
                         "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
                         "RELEASE_MAVEN_USER": "github",
                         "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/releases/",
@@ -68,6 +74,9 @@
                     "run": "./gradlew publish modrinth curseforge",
                     "id": "publish",
                     "env": {
+                        "BUILD_CACHE_PASSWORD": "${{ secrets.BUILD_CACHE_PASSWORD }}",
+                        "BUILD_CACHE_USER": "${{ secrets.BUILD_CACHE_USER }}",
+                        "BUILD_CACHE_URL": "${{ secrets.BUILD_CACHE_URL }}",
                         "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
                         "RELEASE_MAVEN_USER": "github",
                         "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/releases/",
