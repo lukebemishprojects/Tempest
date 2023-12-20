@@ -24,6 +24,9 @@ registries:
   blamejared:
       type: maven-repository
       url: https://maven.blamejared.com/
+  pluginportal:
+      type: maven-repository
+      url: https://plugins.gradle.org/m2/
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
@@ -36,6 +39,7 @@ updates:
       - lukebemish
       - architectury
       - blamejared
+      - pluginportal
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
