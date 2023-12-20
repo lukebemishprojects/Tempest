@@ -15,7 +15,7 @@ public class WeatherCheckMixin {
         method = "test(Lnet/minecraft/world/level/storage/loot/LootContext;)Z",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/level/Level;isRaining()Z"
+            target = "Lnet/minecraft/server/level/ServerLevel;isRaining()Z"
         )
     )
     private boolean tempest$isRaining(boolean original, LootContext context) {
