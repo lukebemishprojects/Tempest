@@ -11,6 +11,9 @@
     "minecraft:smoker",
     "minecraft:brewing_stand",
     "minecraft:enchanting_table",
+    "minecraft:loom",
+    "minecraft:stonecutter",
+    "minecraft:grindstone",
     "minecraft:hopper",
     "minecraft:dropper",
     "minecraft:dispenser",
@@ -24,11 +27,41 @@
       "id": "#c:chests",
       "required": false
     },
+    "minecraft:chest",
+    "minecraft:trapped_chest",
+    "minecraft:ender_chest",
+    {
+      "id": "#forge:barrels",
+      "required": false
+    },
+    {
+      "id": "#c:barrels",
+      "required": false
+    },
+    "minecraft:barrel",
     "minecraft:piston",
     "minecraft:sticky_piston",
     "minecraft:piston_head",
     "minecraft:lever",
     "minecraft:repeater",
-    "minecraft:comparator"
+    "minecraft:comparator",
+    "#minecraft:shulker_boxes",
+    {
+      "id": "#giftsofgiving:presents",
+      "required": false
+    },
+    {
+      "id": "#waystones:waystones",
+      "required": false
+    },
+    {
+      "id": "waystones:warp_plate",
+      "required": false
+    },
+    {
+      "id": "#waystones:sharestones",
+      "required": false
+    },
+    "minecraft:tnt"
   ]
 }
