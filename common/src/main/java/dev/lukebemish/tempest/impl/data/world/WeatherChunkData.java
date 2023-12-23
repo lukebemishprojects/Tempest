@@ -308,8 +308,10 @@ public class WeatherChunkData {
         boolean repeat = false;
 
         if (isHailing(temp, precip, thunder)) {
-            if (tryHailBreak(level, waterySurface.above())) {
-                tryHailBreak(level, waterySurface);
+            if (level.random.nextFloat() < 0.4 * precip) {
+                if (tryHailBreak(level, waterySurface.above())) {
+                    tryHailBreak(level, waterySurface);
+                }
             }
             repeat = level.random.nextFloat() < precip;
         }
