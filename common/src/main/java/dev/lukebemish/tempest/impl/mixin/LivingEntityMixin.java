@@ -41,24 +41,27 @@ public abstract class LivingEntityMixin extends Entity {
         )
     )
     private void tempest$wrapDeltaMovement(LivingEntity livingEntity, double dx, double dy, double dz, Operation<Void> operation) {
-        //noinspection DataFlowIssue
-        if (!((LivingEntity) (Object) this).shouldDiscardFriction()) {
-            if (this.onGround()) {
-                var pos = this.getBlockPosBelowThatAffectsMyMovement();
-                //noinspection resource
-                var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos)).query(pos);
-                int blackIce = weatherData.blackIce();
-                if (blackIce != 0) {
-                    var unscaledDx = dx / 0.91f;
-                    var unscaledDz = dz / 0.91f;
+        //noinspection ConstantValue
+        if (!((Object) this instanceof Player player) || (!player.isSpectator() && (!player.isCreative() || !player.getAbilities().flying))) {
+            //noinspection DataFlowIssue
+            if (!((LivingEntity) (Object) this).shouldDiscardFriction()) {
+                if (this.onGround()) {
+                    var pos = this.getBlockPosBelowThatAffectsMyMovement();
+                    //noinspection resource
+                    var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos)).query(pos);
+                    int blackIce = weatherData.blackIce();
+                    if (blackIce != 0) {
+                        var unscaledDx = dx / 0.91f;
+                        var unscaledDz = dz / 0.91f;
 
-                    var degree = 1 - (blackIce / 15f);
-                    degree = degree * degree;
+                        var degree = 1 - (blackIce / 15f);
+                        degree = degree * degree;
 
-                    var newDx = degree * dx + (1 - degree) * unscaledDx;
-                    var newDz = degree * dz + (1 - degree) * unscaledDz;
-                    operation.call(livingEntity, newDx, dy, newDz);
-                    return;
+                        var newDx = degree * dx + (1 - degree) * unscaledDx;
+                        var newDz = degree * dz + (1 - degree) * unscaledDz;
+                        operation.call(livingEntity, newDx, dy, newDz);
+                        return;
+                    }
                 }
             }
         }

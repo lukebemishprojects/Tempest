@@ -387,7 +387,9 @@ public class WeatherChunkData {
                             level.setBlockAndUpdate(toSnow, newState);
                             Block.pushEntitiesUp(state, newState, level, toSnow);
                         } else if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
-                            level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
+                            if (hasSpaceForSnow(level, toSnow)) {
+                                level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
+                            }
                         }
                         return level.random.nextFloat() < precip;
                     }
@@ -395,6 +397,20 @@ public class WeatherChunkData {
             }
         }
         return level.random.nextFloat() < (level.random.nextBoolean() ? -temp : precip);
+    }
+
+    private static boolean hasSpaceForSnow(ServerLevel level, BlockPos pos) {
+        for (int i = 0; i < 4; i++) {
+            pos = pos.below();
+            if (!validBlock(level, pos)) {
+                return true;
+            }
+            var block = level.getBlockState(pos).getBlock();
+            if (block != Blocks.SNOW_BLOCK && block != Blocks.POWDER_SNOW) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean tryHailBreak(ServerLevel level, BlockPos toFreeze) {
@@ -520,7 +536,7 @@ public class WeatherChunkData {
         return level.getBrightness(LightLayer.BLOCK, toFreeze) < 10;
     }
 
-    private boolean validBlock(ServerLevel level, BlockPos toFreeze) {
+    private static boolean validBlock(ServerLevel level, BlockPos toFreeze) {
         return toFreeze.getY() >= level.getMinBuildHeight() && toFreeze.getY() < level.getMaxBuildHeight();
     }
 

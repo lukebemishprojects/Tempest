@@ -20,6 +20,10 @@
       "id": "#c:buds",
       "required": false
     },
+    "minecraft:small_amethyst_bud",
+    "minecraft:medium_amethyst_bud",
+    "minecraft:large_amethyst_bud",
+    "minecraft:amethyst_cluster",
     "#minecraft:small_flowers",
     "#minecraft:saplings",
     "#minecraft:crops",
