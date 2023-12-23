@@ -121,7 +121,7 @@ public class FancyPrecipitationRenderer {
         RenderSystem.enableDepthTest();
 
         int layers = 10;
-        int belowAbove = 5;
+        int belowOffset = 5;
 
         int rendering = -1;
 
@@ -142,8 +142,8 @@ public class FancyPrecipitationRenderer {
                 if (status != null) {
                     float precipLevel = status.intensity;
                     int lowerY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                    int minY = Math.max(floorY - belowAbove, lowerY);
-                    int maxY = Math.max(floorY + belowAbove, lowerY);
+                    int minY = Math.max(floorY - belowOffset, lowerY);
+                    int maxY = Math.max(floorY + layers, lowerY);
 
                     int upperY = Math.max(floorY, lowerY);
 

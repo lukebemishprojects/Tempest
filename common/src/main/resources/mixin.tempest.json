@@ -19,7 +19,8 @@
     "FoxSeekShelterMixin",
     "LightningRodBlockMixin",
     "PandaMixin",
-    "ThrownTridentMixin"
+    "ThrownTridentMixin",
+    "NaturalSpawnerMixin"
   ],
   "client": [
     "client.DispatchRenderChunkAccessor",

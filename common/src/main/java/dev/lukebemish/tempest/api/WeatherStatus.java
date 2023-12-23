@@ -1,10 +1,15 @@
 package dev.lukebemish.tempest.api;
 
+import com.mojang.serialization.Codec;
 import dev.lukebemish.tempest.impl.Services;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec2;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 
 @SuppressWarnings("unused")
 public final class WeatherStatus {
@@ -70,7 +75,7 @@ public final class WeatherStatus {
         return data.makeApiStatus(WeatherStatus::new, position);
     }
 
-    public enum Kind {
+    public enum Kind implements StringRepresentable {
         /**
          * No precipitation.
          */
@@ -90,6 +95,13 @@ public final class WeatherStatus {
         /**
          * Freezing rain; produced at medium-cold temperatures. Coats the ground in ice and freezes up redstone components.
          */
-        SLEET
+        SLEET;
+
+        @Override
+        public @NotNull String getSerializedName() {
+            return name().toLowerCase(Locale.ROOT);
+        }
+
+        public static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
     }
 }

@@ -79,10 +79,9 @@ public abstract class LivingEntityMixin extends Entity {
                 if (!this.level().isClientSide()) {
                     if ((this.tickCount & 8) == 0 && status != null && status.category == WeatherCategory.HAIL) {
                         var source = new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Constants.HAIL_DAMAGE_TYPE));
-                        //noinspection ConstantValue
-                        if ((Object) this instanceof Player) {
+                        if (this.getType().is(Constants.DAMAGED_BY_HAIL)) {
                             this.hurt(source, status.intensity / 3);
-                        } else {
+                        } else if (!this.getType().is(Constants.IMMUNE_TO_HAIL)) {
                             this.hurt(source, 0);
                         }
                     }

@@ -3,6 +3,7 @@ package dev.lukebemish.tempest.impl.forge;
 import dev.lukebemish.tempest.impl.Constants;
 import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.AttachedWeatherMapReloadListener;
+import dev.lukebemish.tempest.impl.data.WeatherSpawnProvider;
 import dev.lukebemish.tempest.impl.forge.client.ClientEntrypoint;
 import dev.lukebemish.tempest.impl.forge.compat.embeddium.EmbeddiumCompat;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -58,6 +59,7 @@ public final class ModEntrypoint {
 
     private void addReloadListener(AddReloadListenerEvent event) {
         event.addListener(new AttachedWeatherMapReloadListener(event.getRegistryAccess()));
+        event.addListener(new WeatherSpawnProvider.ReloadListener());
     }
 
     private void onDatapackSync(OnDatapackSyncEvent event) {

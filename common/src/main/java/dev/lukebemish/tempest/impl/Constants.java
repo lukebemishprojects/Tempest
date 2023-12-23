@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +22,8 @@ public final class Constants {
     public static final TagKey<Block> FREEZES_UP = TagKey.create(Registries.BLOCK, id("freezes_up"));
     public static final TagKey<Block> BREAKS_WITH_HAIL = TagKey.create(Registries.BLOCK, id("breaks_with_hail"));
     public static final TagKey<Block> SAFE_WITH_HAIL = TagKey.create(Registries.BLOCK, id("safe_with_hail"));
+    public static final TagKey<EntityType<?>> DAMAGED_BY_HAIL = TagKey.create(Registries.ENTITY_TYPE, id("damaged_by_hail"));
+    public static final TagKey<EntityType<?>> IMMUNE_TO_HAIL = TagKey.create(Registries.ENTITY_TYPE, id("damaged_by_hail"));
 
     public static final ResourceKey<DamageType> HAIL_DAMAGE_TYPE = ResourceKey.create(Registries.DAMAGE_TYPE, id("hail"));
 
