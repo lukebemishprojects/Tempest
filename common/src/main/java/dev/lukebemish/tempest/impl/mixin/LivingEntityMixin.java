@@ -81,7 +81,7 @@ public abstract class LivingEntityMixin extends Entity {
                         var source = new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Constants.HAIL_DAMAGE_TYPE));
                         //noinspection ConstantValue
                         if ((Object) this instanceof Player) {
-                            this.hurt(source, status.intensity / 2);
+                            this.hurt(source, status.intensity / 3);
                         } else {
                             this.hurt(source, 0);
                         }
