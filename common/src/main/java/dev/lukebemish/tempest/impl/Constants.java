@@ -20,6 +20,7 @@ public final class Constants {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final TagKey<Block> FREEZES_UP = TagKey.create(Registries.BLOCK, id("freezes_up"));
     public static final TagKey<Block> BREAKS_WITH_HAIL = TagKey.create(Registries.BLOCK, id("breaks_with_hail"));
+    public static final TagKey<Block> SAFE_WITH_HAIL = TagKey.create(Registries.BLOCK, id("safe_with_hail"));
 
     public static final ResourceKey<DamageType> HAIL_DAMAGE_TYPE = ResourceKey.create(Registries.DAMAGE_TYPE, id("hail"));
 
