@@ -121,6 +121,7 @@ public class FancyPrecipitationRenderer {
         RenderSystem.enableDepthTest();
 
         int layers = 10;
+        int belowAbove = 5;
 
         int rendering = -1;
 
@@ -141,8 +142,8 @@ public class FancyPrecipitationRenderer {
                 if (status != null) {
                     float precipLevel = status.intensity;
                     int lowerY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                    int minY = Math.max(floorY - layers, lowerY);
-                    int maxY = Math.max(floorY + layers, lowerY);
+                    int minY = Math.max(floorY - belowAbove, lowerY);
+                    int maxY = Math.max(floorY + belowAbove, lowerY);
 
                     int upperY = Math.max(floorY, lowerY);
 
@@ -166,7 +167,12 @@ public class FancyPrecipitationRenderer {
                             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
                         }
 
-                        float slowVerticalOffset = -((ticks & (512 - 1)) + partialTick) / 512.0F;
+                        //float slowVerticalOffset = -((ticks & (512 - 1)) + partialTick) / 512.0F;
+                        float speed = Mth.clamp(status.speed, 0, 1.25f);
+                        float relSpeed = (speed / 1.25f);
+                        relSpeed = 1 - (1 - relSpeed) * (1 - relSpeed) * (1 - relSpeed) * (1 - relSpeed);
+                        float slowFactor = 512F * (1 - relSpeed) + 32F * relSpeed;
+                        float slowVerticalOffset = -((ticks & (512 - 1)) + partialTick) / slowFactor;
                         float randomizingOffset = (float) (randomsource.nextDouble() + (time * randomsource.nextGaussian()) * 0.001);
                         int offsetTicks = ticks + hash & 31;
                         float fastVerticalOffset = -(offsetTicks + partialTick) / 32.0F * (3.0F + randomsource.nextFloat());
@@ -178,7 +184,7 @@ public class FancyPrecipitationRenderer {
 
                         Matrix4f quadRotate = new Matrix4f();
                         quadRotate.translate((float) (x - camX + 0.5), (float) (minY - camY), (float) (z - camZ + 0.5));
-                        quadRotate.rotate(Mth.clamp(status.speed, 0, 1.25f), -status.windZ, 0, status.windX);
+                        quadRotate.rotate(speed, -status.windZ, 0, status.windX);
                         quadRotate.translate((float) -(x - camX + 0.5), (float) -(minY - camY), (float) -(z - camZ + 0.5));
 
                         float movement = swirlMovement * status.swirl;

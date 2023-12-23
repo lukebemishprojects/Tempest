@@ -41,27 +41,24 @@ public abstract class LivingEntityMixin extends Entity {
         )
     )
     private void tempest$wrapDeltaMovement(LivingEntity livingEntity, double dx, double dy, double dz, Operation<Void> operation) {
-        //noinspection ConstantValue
-        if (!((Object) this instanceof Player player) || (!player.isSpectator() && (!player.isCreative() || !player.getAbilities().flying))) {
-            //noinspection DataFlowIssue
-            if (!((LivingEntity) (Object) this).shouldDiscardFriction()) {
-                if (this.onGround()) {
-                    var pos = this.getBlockPosBelowThatAffectsMyMovement();
-                    //noinspection resource
-                    var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos)).query(pos);
-                    int blackIce = weatherData.blackIce();
-                    if (blackIce != 0) {
-                        var unscaledDx = dx / 0.91f;
-                        var unscaledDz = dz / 0.91f;
+        //noinspection DataFlowIssue
+        if (!((LivingEntity) (Object) this).shouldDiscardFriction()) {
+            if (this.onGround()) {
+                var pos = this.getBlockPosBelowThatAffectsMyMovement();
+                //noinspection resource
+                var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos)).query(pos);
+                int blackIce = weatherData.blackIce();
+                if (blackIce != 0) {
+                    var unscaledDx = dx / 0.91f;
+                    var unscaledDz = dz / 0.91f;
 
-                        var degree = 1 - (blackIce / 15f);
-                        degree = degree * degree;
+                    var degree = 1 - (blackIce / 15f);
+                    degree = degree * degree;
 
-                        var newDx = degree * dx + (1 - degree) * unscaledDx;
-                        var newDz = degree * dz + (1 - degree) * unscaledDz;
-                        operation.call(livingEntity, newDx, dy, newDz);
-                        return;
-                    }
+                    var newDx = degree * dx + (1 - degree) * unscaledDx;
+                    var newDz = degree * dz + (1 - degree) * unscaledDz;
+                    operation.call(livingEntity, newDx, dy, newDz);
+                    return;
                 }
             }
         }
@@ -91,13 +88,16 @@ public abstract class LivingEntityMixin extends Entity {
                     }
                 }
                 if (status != null && status.speed > 0.75) {
-                    if (!this.onGround() || status.speed > 1) {
-                        var cDelta = this.getDeltaMovement();
-                        var windDelta = new Vec3(status.windX, 0, status.windZ);
-                        double inDirection = cDelta.dot(windDelta);
-                        if (inDirection < status.speed) {
-                            double mult = (status.speed*0.25 - inDirection) * 0.1;
-                            this.setDeltaMovement(cDelta.add(windDelta.scale(mult)));
+                    //noinspection ConstantValue
+                    if (!((Object) this instanceof Player player) || (!player.isSpectator() && (!player.isCreative() || !player.getAbilities().flying))) {
+                        if (!this.onGround() || status.speed > 1) {
+                            var cDelta = this.getDeltaMovement();
+                            var windDelta = new Vec3(status.windX, 0, status.windZ);
+                            double inDirection = cDelta.dot(windDelta);
+                            if (inDirection < status.speed) {
+                                double mult = (status.speed * 0.25 - inDirection) * 0.1;
+                                this.setDeltaMovement(cDelta.add(windDelta.scale(mult)));
+                            }
                         }
                     }
                 }
