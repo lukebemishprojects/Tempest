@@ -309,7 +309,7 @@ public class WeatherChunkData {
 
         if (isHailing(temp, precip, thunder)) {
             if (level.random.nextFloat() < 0.4 * precip) {
-                BlockPos hailSurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, level.getBlockRandomPos(x, 0, z, 15)).below();
+                BlockPos hailSurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, waterySurface).below();
                 if (tryHailBreak(level, hailSurface.above())) {
                     tryHailBreak(level, hailSurface);
                 }
