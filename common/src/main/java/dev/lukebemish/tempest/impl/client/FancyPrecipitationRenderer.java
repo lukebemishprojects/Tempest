@@ -145,11 +145,12 @@ public class FancyPrecipitationRenderer {
                 if (status != null) {
                     float precipLevel = status.intensity;
                     int lowerY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                    checkingPos.setY(lowerY);
                     int minY = Math.max(floorY - belowOffset, lowerY);
                     int maxY = Math.max(floorY + layers, lowerY);
 
                     int upperY = Math.max(floorY, lowerY);
+
+                    checkingPos.setY(minY);
 
                     if (data.canSeeWind(checkingPos) && minY != maxY) {
                         // we actually have somewhere to render
