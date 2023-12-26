@@ -16,6 +16,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -30,7 +31,7 @@ public record WeatherSpawnProvider(WeatherStatus.Kind kind, List<MobSpawnSetting
     ).apply(i, WeatherSpawnProvider::new));
 
     public static WeightedRandomList<MobSpawnSettings.SpawnerData> extendList(WeightedRandomList<MobSpawnSettings.SpawnerData> original, ServerLevel level, BlockPos pos, MobCategory mobCategory) {
-        if (level.canSeeSky(pos)) {
+        if (level.canSeeSky(pos) && level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pos).getY() <= pos.getY()) {
             var kind = WeatherStatus.atPosition(level, pos).kind();
             if (kind == WeatherStatus.Kind.CLEAR) {
                 return original;

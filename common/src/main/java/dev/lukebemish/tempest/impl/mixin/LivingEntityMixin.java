@@ -13,6 +13,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -73,7 +74,7 @@ public abstract class LivingEntityMixin extends Entity {
     private void tempest$baseTick(CallbackInfo ci) {
         if (this.isAlive()) {
             var pos = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
-            if (level().canSeeSky(pos)){
+            if (level().canSeeSky(pos) && level().getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pos).getY() <= pos.getY()){
                 var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos));
                 var status = weatherData.getWeatherStatusWindAware(pos);
                 if (!this.level().isClientSide()) {
