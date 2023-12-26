@@ -574,7 +574,7 @@ public class WeatherChunkData {
                 } else {
                     level.setBlockAndUpdate(above, Blocks.AIR.defaultBlockState());
                 }
-            } else if (stateAbove.getBlock() == Blocks.AIR && (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW)) {
+            } else if (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW) {
                 level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
             }
         }
