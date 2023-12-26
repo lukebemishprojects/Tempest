@@ -75,7 +75,7 @@ public abstract class LivingEntityMixin extends Entity {
             var pos = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
             if (level().canSeeSky(pos)){
                 var weatherData = Services.PLATFORM.getChunkData(this.level().getChunkAt(pos));
-                var status = weatherData.getWeatherStatus(pos);
+                var status = weatherData.getWeatherStatusWindAware(pos);
                 if (!this.level().isClientSide()) {
                     if ((this.tickCount & 8) == 0 && status != null && status.category == WeatherCategory.HAIL) {
                         var source = new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Constants.HAIL_DAMAGE_TYPE));

@@ -58,7 +58,7 @@ public class FancyPrecipitationRenderer {
                 if (particlePos.getY() > level.getMinBuildHeight() && particlePos.getY() <= cameraPos.getY() + 10 && particlePos.getY() >= cameraPos.getY() - 10) {
                     var chunk = level.getChunkAt(particlePos);
                     var data = Services.PLATFORM.getChunkData(chunk);
-                    var status = data.getWeatherStatus(particlePos);
+                    var status = data.getWeatherStatusWindAware(particlePos);
                     if (status != null) {
                         if (random.nextFloat() <= status.intensity) {
                             if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET || status.category == WeatherCategory.HAIL) {
@@ -93,7 +93,7 @@ public class FancyPrecipitationRenderer {
         BlockPos soundPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, cameraPos.offset(k, 0, l));
         var chunk = level.getChunkAt(soundPos);
         var data = Services.PLATFORM.getChunkData(chunk);
-        var status = data.getWeatherStatus(soundPos);
+        var status = data.getWeatherStatusWindAware(soundPos);
         if (status != null && random.nextInt(3) < this.rainSoundTime++) {
             this.rainSoundTime = 0;
             if (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET || status.category == WeatherCategory.HAIL) {
@@ -129,12 +129,15 @@ public class FancyPrecipitationRenderer {
         float time = (float) ticks + partialTick;
         RenderSystem.setShader(GameRenderer::getParticleShader);
         BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+        BlockPos.MutableBlockPos checkingPos = new BlockPos.MutableBlockPos();
         for(int z = floorZ - layers; z <= floorZ + layers; ++z) {
             for (int x = floorX - layers; x <= floorX + layers; ++x) {
                 int sizeIdx = (z - floorZ + 16) * 32 + x - floorX + 16;
                 float sizeX = this.rainSizeX[sizeIdx];
                 float sizeZ = this.rainSizeZ[sizeIdx];
                 mutableBlockPos.set(x, camY, z);
+                checkingPos.setX(x);
+                checkingPos.setZ(z);
                 //noinspection DataFlowIssue
                 var chunk = level.getChunkAt(mutableBlockPos);
                 var data = Services.PLATFORM.getChunkData(chunk);
@@ -142,12 +145,13 @@ public class FancyPrecipitationRenderer {
                 if (status != null) {
                     float precipLevel = status.intensity;
                     int lowerY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+                    checkingPos.setY(lowerY);
                     int minY = Math.max(floorY - belowOffset, lowerY);
                     int maxY = Math.max(floorY + layers, lowerY);
 
                     int upperY = Math.max(floorY, lowerY);
 
-                    if (minY != maxY) {
+                    if (data.canSeeWind(checkingPos) && minY != maxY) {
                         // we actually have somewhere to render
                         // 3121: prime
                         // 45238971: 3, 15079657
@@ -167,7 +171,6 @@ public class FancyPrecipitationRenderer {
                             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
                         }
 
-                        //float slowVerticalOffset = -((ticks & (512 - 1)) + partialTick) / 512.0F;
                         float speed = Mth.clamp(status.speed, 0, 1.25f);
                         float relSpeed = (speed / 1.25f);
                         relSpeed = 1 - (1 - relSpeed) * (1 - relSpeed) * (1 - relSpeed) * (1 - relSpeed);

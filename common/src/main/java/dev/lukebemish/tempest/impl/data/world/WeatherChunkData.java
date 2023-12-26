@@ -4,6 +4,7 @@ import dev.lukebemish.tempest.api.WeatherStatus;
 import dev.lukebemish.tempest.impl.Constants;
 import dev.lukebemish.tempest.impl.data.WeatherCategory;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
+import dev.lukebemish.tempest.impl.util.QuasiRandomChunkVisitor;
 import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,11 +14,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LiquidBlock;
-import net.minecraft.world.level.block.SnowLayerBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -49,6 +48,8 @@ public class WeatherChunkData {
     private static final int[] ZS = new int[] {0, 16, 0, 16};
 
     private boolean initialized;
+    private int visitIndex = -1;
+    private final List<BlockPos> windCheckPositions = new ArrayList<>();
 
     private final @Nullable Runnable setDirtyCallback;
 
@@ -254,6 +255,7 @@ public class WeatherChunkData {
                 windZ[i] = weatherMap.windZ().query(x+XS[i], z+ZS[i], gameTime);
                 thunder[i] = Mth.clamp(weatherMap.thunder().query(x+XS[i], z+ZS[i], gameTime), -1, 1);
             }
+            recalculateWindCheckPositions(level);
             this.markDirty();
         }
 
@@ -289,18 +291,42 @@ public class WeatherChunkData {
             }
         }
 
-        if (meltAndFreeze(level, x, z)) {
-            boolean tryAgain = meltAndFreeze(level, x, z);
+        if (meltAndFreeze(level)) {
+            boolean tryAgain = meltAndFreeze(level);
             if (tryAgain && level.random.nextBoolean()) {
-                meltAndFreeze(level, x, z);
+                meltAndFreeze(level);
             }
         }
 
         this.update();
     }
 
-    private boolean meltAndFreeze(ServerLevel level, int x, int z) {
-        BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, level.getBlockRandomPos(x, 0, z, 15)).below();
+    private void recalculateWindCheckPositions(Level level) {
+        var centerPos = chunk.getPos().getBlockAt(8, 0, 8);
+        float windX = windX(level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, centerPos));
+        float windZ = windZ(level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, centerPos));
+        float speed = Mth.sqrt(windX * windX + windZ * windZ);
+        float angle = Mth.clamp(speed, 0, 1.25F)/ 1.25F;
+        float singleX = -(float) Math.cos(angle) * windX / speed;
+        float singleY = (float) Math.sin(angle);
+        float singleZ = -(float) Math.cos(angle) * windZ / speed;
+        windCheckPositions.clear();
+        float xOff = 0;
+        float yOff = 0;
+        float zOff = 0;
+        for (int i = 0; i < 12; i++) {
+            xOff += singleX;
+            yOff += singleY;
+            zOff += singleZ;
+            windCheckPositions.add(new BlockPos(Math.round(xOff), Math.round(yOff), Math.round(zOff)));
+        }
+    }
+
+    private boolean meltAndFreeze(ServerLevel level) {
+        BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, QuasiRandomChunkVisitor.INSTANCE.inChunk(chunk, visitIndex, i -> this.visitIndex = i)).below();
+        if (!canSeeWindIgnoreLeaves(waterySurface)) {
+            return false;
+        }
         float temp = temperature(waterySurface);
         float precip = precipitation(waterySurface);
         float thunder = thunder(waterySurface);
@@ -310,8 +336,10 @@ public class WeatherChunkData {
         if (isHailing(temp, precip, thunder)) {
             if (level.random.nextFloat() < 0.4 * precip) {
                 BlockPos hailSurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, waterySurface).below();
-                if (tryHailBreak(level, hailSurface.above())) {
-                    tryHailBreak(level, hailSurface);
+                if (canSeeWind(hailSurface)) {
+                    if (tryHailBreak(level, hailSurface.above())) {
+                        tryHailBreak(level, hailSurface);
+                    }
                 }
             }
             repeat = level.random.nextFloat() < precip;
@@ -376,7 +404,7 @@ public class WeatherChunkData {
                         if (state.getBlock() == Blocks.SNOW) {
                             int levels = state.getValue(SnowLayerBlock.LAYERS);
                             BlockState newState;
-                            if (levels < 7) {
+                            if (levels < 6) {
                                 newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
                             } else {
                                 if (level.random.nextFloat() < 0.75f) {
@@ -391,6 +419,15 @@ public class WeatherChunkData {
                             if (hasSpaceForSnow(level, toSnow)) {
                                 level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
                             }
+                        } else if (state.getBlock() == Blocks.POWDER_SNOW) {
+                            BlockPos aboveSnow = toSnow.above();
+                            BlockState upState = level.getBlockState(aboveSnow);
+                            level.setBlockAndUpdate(toSnow, Blocks.SNOW_BLOCK.defaultBlockState());
+                            if (upState.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, aboveSnow)) {
+                                if (hasSpaceForSnow(level, aboveSnow)) {
+                                    level.setBlockAndUpdate(aboveSnow, Blocks.SNOW.defaultBlockState());
+                                }
+                            }
                         }
                         return level.random.nextFloat() < precip;
                     }
@@ -398,6 +435,36 @@ public class WeatherChunkData {
             }
         }
         return level.random.nextFloat() < (level.random.nextBoolean() ? -temp : precip);
+    }
+
+    public boolean canSeeWindIgnoreLeaves(BlockPos pos) {
+        var mutablePos = new BlockPos.MutableBlockPos();
+        for (BlockPos check : windCheckPositions) {
+            mutablePos.setWithOffset(pos, check);
+            if (chunk.getLevel().isLoaded(mutablePos)) {
+                BlockState blockState = chunk.getLevel().getBlockState(mutablePos);
+                //noinspection deprecation
+                if ((blockState.blocksMotion() || !blockState.getFluidState().isEmpty()) && !(blockState.getBlock() instanceof LeavesBlock)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean canSeeWind(BlockPos pos) {
+        var mutablePos = new BlockPos.MutableBlockPos();
+        for (BlockPos check : windCheckPositions) {
+            mutablePos.setWithOffset(pos, check);
+            if (chunk.getLevel().isLoaded(mutablePos)) {
+                BlockState blockState = chunk.getLevel().getBlockState(mutablePos);
+                //noinspection deprecation
+                if (blockState.blocksMotion() || !blockState.getFluidState().isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static boolean hasSpaceForSnow(ServerLevel level, BlockPos pos) {
@@ -556,11 +623,17 @@ public class WeatherChunkData {
     }
 
     void update(UpdateWeatherChunk updateWeatherChunk, Consumer<BlockPos> posUpdater) {
+        boolean recalcChecks = this.windX != updateWeatherChunk.windX || this.windZ != updateWeatherChunk.windZ;
+
         this.temperature = updateWeatherChunk.temperature;
         this.precipitation = updateWeatherChunk.precipitation;
         this.windX = updateWeatherChunk.windX;
         this.windZ = updateWeatherChunk.windZ;
         this.thunder = updateWeatherChunk.thunder;
+
+        if (recalcChecks) {
+            recalculateWindCheckPositions(chunk.getLevel());
+        }
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 0; i < updateWeatherChunk.posData.length; i++) {
@@ -570,6 +643,14 @@ public class WeatherChunkData {
             query(pos).data(value);
             posUpdater.accept(pos);
         }
+    }
+
+    public @Nullable WeatherCategory.WeatherStatus getWeatherStatusWindAware(BlockPos pos) {
+        var status = getWeatherStatus(pos);
+        if (canSeeWind(pos)) {
+            return status;
+        }
+        return null;
     }
 
     public @Nullable WeatherCategory.WeatherStatus getWeatherStatus(BlockPos pos) {

@@ -20,7 +20,7 @@ public class LevelMixin {
         //noinspection DataFlowIssue
         var level = (Level) (Object) this;
         var data = Services.PLATFORM.getChunkData(level.getChunkAt(pos));
-        var status = data.getWeatherStatus(pos);
+        var status = data.getWeatherStatusWindAware(pos);
         if (status != null && (status.category == WeatherCategory.RAIN || status.category == WeatherCategory.SLEET)) {
             cir.setReturnValue(true);
         }
