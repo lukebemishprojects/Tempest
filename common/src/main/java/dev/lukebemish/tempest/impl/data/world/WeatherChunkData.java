@@ -324,9 +324,6 @@ public class WeatherChunkData {
 
     private boolean meltAndFreeze(ServerLevel level) {
         BlockPos waterySurface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, QuasiRandomChunkVisitor.INSTANCE.inChunk(chunk, visitIndex, i -> this.visitIndex = i)).below();
-        if (!canSeeWindIgnoreLeaves(waterySurface)) {
-            return false;
-        }
         float temp = temperature(waterySurface);
         float precip = precipitation(waterySurface);
         float thunder = thunder(waterySurface);
@@ -346,6 +343,17 @@ public class WeatherChunkData {
         }
 
         if (temp < 0f) {
+            BlockPos.MutableBlockPos above = new BlockPos.MutableBlockPos();
+            above.set(waterySurface);
+            above.setY(above.getY() + 1);
+            if (!canSeeWindIgnoreLeavesOrSnow(above)) {
+                above.setY(above.getY() + 1);
+                if (level.random.nextBoolean() || !canSeeWindIgnoreLeavesOrSnow(above)) {
+                    if (level.random.nextBoolean() || !canSeeWindIgnoreLeavesOrSnow(above)) {
+                        return false;
+                    }
+                }
+            }
             // add new black ice or ice
             boolean frozen = tryFreezeBlock(level, waterySurface);
             repeat = frozen || (repeat && level.random.nextBoolean());
@@ -443,8 +451,21 @@ public class WeatherChunkData {
             mutablePos.setWithOffset(pos, check);
             if (chunk.getLevel().isLoaded(mutablePos)) {
                 BlockState blockState = chunk.getLevel().getBlockState(mutablePos);
-                //noinspection deprecation
-                if ((blockState.blocksMotion() || !blockState.getFluidState().isEmpty()) && !(blockState.getBlock() instanceof LeavesBlock)) {
+                if (isMotionBlocking(blockState) && !(blockState.getBlock() instanceof LeavesBlock)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean canSeeWindIgnoreLeavesOrSnow(BlockPos pos) {
+        var mutablePos = new BlockPos.MutableBlockPos();
+        for (BlockPos check : windCheckPositions) {
+            mutablePos.setWithOffset(pos, check);
+            if (chunk.getLevel().isLoaded(mutablePos)) {
+                BlockState blockState = chunk.getLevel().getBlockState(mutablePos);
+                if (isMotionBlocking(blockState) && !(blockState.getBlock() instanceof LeavesBlock) && !(blockState.is(Constants.SNOW_PASSTHROUGH))) {
                     return false;
                 }
             }
@@ -458,13 +479,17 @@ public class WeatherChunkData {
             mutablePos.setWithOffset(pos, check);
             if (chunk.getLevel().isLoaded(mutablePos)) {
                 BlockState blockState = chunk.getLevel().getBlockState(mutablePos);
-                //noinspection deprecation
-                if (blockState.blocksMotion() || !blockState.getFluidState().isEmpty()) {
+                if (isMotionBlocking(blockState)) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static boolean isMotionBlocking(BlockState blockState) {
+        return (blockState.blocksMotion() || !blockState.getFluidState().isEmpty()) && !(blockState.getBlock() == Blocks.SNOW);
     }
 
     private static boolean hasSpaceForSnow(ServerLevel level, BlockPos pos) {

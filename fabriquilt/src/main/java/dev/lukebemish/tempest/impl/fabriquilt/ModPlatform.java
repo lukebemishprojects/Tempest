@@ -7,12 +7,15 @@ import dev.lukebemish.tempest.impl.data.WeatherMapData;
 import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import dev.lukebemish.tempest.impl.data.world.WeatherData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @AutoService(Services.Platform.class)
 public final class ModPlatform implements Services.Platform {
@@ -29,6 +32,12 @@ public final class ModPlatform implements Services.Platform {
             ((FastChunkLookup) chunk).tempest$setChunkData(data);
             return data;
         }
+    }
+
+    @Override
+    public <S, T extends S> Supplier<T> register(Supplier<T> supplier, ResourceLocation location, Registry<S> registry) {
+        var entry = Registry.register(registry, location, supplier.get());
+        return () -> entry;
     }
 
     private static final class EmptyData extends WeatherChunkData {
