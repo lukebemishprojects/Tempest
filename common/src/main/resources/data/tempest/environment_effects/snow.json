@@ -1,0 +1,10 @@
+{
+  "conditions": [
+    {
+      "condition": "tempest:tempest_weather_check",
+      "kind": "snow"
+    }
+  ],
+  "is_additive": true,
+  "heat_target": -8.0
+}

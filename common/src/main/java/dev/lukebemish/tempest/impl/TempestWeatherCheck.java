@@ -48,7 +48,7 @@ public record TempestWeatherCheck(Optional<WeatherStatus.Kind> kind, Optional<Ra
     });
 
     @Override
-    public LootItemConditionType getType() {
+    public @NotNull LootItemConditionType getType() {
         return TYPE;
     }
 
@@ -60,6 +60,10 @@ public record TempestWeatherCheck(Optional<WeatherStatus.Kind> kind, Optional<Ra
             return false;
         }
         var blockPos = new BlockPos((int) Math.round(pos.x()), (int) Math.round(pos.y()), (int) Math.round(pos.z()));
+        var data = Services.PLATFORM.getChunkData(level.getChunkAt(blockPos));
+        if (!level.canSeeSky(blockPos) || !data.canSeeWind(blockPos)) {
+            return false;
+        }
         var weather = WeatherStatus.atPosition(level, blockPos);
         if (weather == null) {
             return false;
