@@ -346,10 +346,10 @@ public class WeatherChunkData {
             BlockPos.MutableBlockPos above = new BlockPos.MutableBlockPos();
             above.set(waterySurface);
             above.setY(above.getY() + 1);
-            if (!canSeeWindIgnoreLeavesOrSnow(above)) {
+            if (!canSeeWindSnow(above)) {
                 above.setY(above.getY() + 1);
-                if (level.random.nextBoolean() || !canSeeWindIgnoreLeavesOrSnow(above)) {
-                    if (level.random.nextBoolean() || !canSeeWindIgnoreLeavesOrSnow(above)) {
+                if (level.random.nextBoolean() || !canSeeWindSnow(above)) {
+                    if (level.random.nextBoolean() || !canSeeWindSnow(above)) {
                         return false;
                     }
                 }
@@ -412,7 +412,7 @@ public class WeatherChunkData {
                         if (state.getBlock() == Blocks.SNOW) {
                             int levels = state.getValue(SnowLayerBlock.LAYERS);
                             BlockState newState;
-                            if (levels < 6) {
+                            if (levels < 7) {
                                 newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
                             } else {
                                 if (level.random.nextFloat() < 0.75f) {
@@ -445,21 +445,7 @@ public class WeatherChunkData {
         return level.random.nextFloat() < (level.random.nextBoolean() ? -temp : precip);
     }
 
-    public boolean canSeeWindIgnoreLeaves(BlockPos pos) {
-        var mutablePos = new BlockPos.MutableBlockPos();
-        for (BlockPos check : windCheckPositions) {
-            mutablePos.setWithOffset(pos, check);
-            if (chunk.getLevel().isLoaded(mutablePos)) {
-                BlockState blockState = chunk.getLevel().getBlockState(mutablePos);
-                if (isMotionBlocking(blockState) && !(blockState.getBlock() instanceof LeavesBlock)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    public boolean canSeeWindIgnoreLeavesOrSnow(BlockPos pos) {
+    public boolean canSeeWindSnow(BlockPos pos) {
         var mutablePos = new BlockPos.MutableBlockPos();
         for (BlockPos check : windCheckPositions) {
             mutablePos.setWithOffset(pos, check);
