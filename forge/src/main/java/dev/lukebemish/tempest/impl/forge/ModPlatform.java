@@ -13,6 +13,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.DeferredRegister;
 
 import java.util.HashMap;
@@ -43,5 +44,10 @@ public final class ModPlatform implements Services.Platform {
         //noinspection unchecked
         DeferredRegister<S> register = (DeferredRegister<S>) REGISTRIES.computeIfAbsent(Pair.of(location.getNamespace(), registry.key()), k -> DeferredRegister.create(registry.key(), location.getNamespace()));
         return register.register(location.getPath(), supplier);
+    }
+
+    @Override
+    public boolean modLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
     }
 }

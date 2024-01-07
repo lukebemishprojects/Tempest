@@ -6,6 +6,7 @@ import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
 import dev.lukebemish.tempest.impl.data.world.WeatherChunkData;
 import dev.lukebemish.tempest.impl.data.world.WeatherData;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
@@ -38,6 +39,11 @@ public final class ModPlatform implements Services.Platform {
     public <S, T extends S> Supplier<T> register(Supplier<T> supplier, ResourceLocation location, Registry<S> registry) {
         var entry = Registry.register(registry, location, supplier.get());
         return () -> entry;
+    }
+
+    @Override
+    public boolean modLoaded(String modId) {
+        return FabricLoader.getInstance().isModLoaded(modId);
     }
 
     private static final class EmptyData extends WeatherChunkData {

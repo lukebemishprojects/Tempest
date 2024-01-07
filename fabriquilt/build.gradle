@@ -40,6 +40,10 @@ dependencies {
     }
     include libs.cca.base
     include libs.cca.chunk
+
+    // Compat
+
+    modLocalRuntime libs.snowrealmagic.fabric
 }
 
 // Publishing

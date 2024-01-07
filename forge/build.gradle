@@ -45,8 +45,12 @@ dependencies {
     implementation libs.mixinextras.forge
     include libs.mixinextras.forge
 
+    // Compat
+
     modCompileOnly libs.embeddium
-    //modRuntimeOnly libs.embeddium
+    //modLocalRuntime libs.embeddium
+
+    modLocalRuntime libs.snowrealmagic.forge
 }
 
 // Publishing

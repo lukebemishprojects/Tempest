@@ -584,10 +584,10 @@ public class WeatherChunkData {
                 } else {
                     level.setBlockAndUpdate(above, Blocks.AIR.defaultBlockState());
                 }
-            } else if (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW) {
-                level.setBlockAndUpdate(toMelt, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
             } else if (stateAbove.getBlock() == Blocks.POWDER_SNOW) {
                 level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
+            } else if (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW) {
+                level.setBlockAndUpdate(toMelt, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
             }
         }
     }
