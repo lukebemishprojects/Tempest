@@ -579,9 +579,7 @@ public class WeatherChunkData {
 
             var above = toMelt.above();
             var stateAbove = level.getBlockState(above);
-            if (Services.melt(level, above, stateAbove)) {
-
-            } else if (stateAbove.getBlock() == Blocks.SNOW) {
+            if (stateAbove.getBlock() == Blocks.SNOW) {
                 int levels = stateAbove.getValue(SnowLayerBlock.LAYERS);
                 if (levels > 1) {
                     var newState = stateAbove.setValue(SnowLayerBlock.LAYERS, levels - 1);
@@ -591,10 +589,12 @@ public class WeatherChunkData {
                 }
             } else if (stateAbove.getBlock() == Blocks.POWDER_SNOW) {
                 level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
-            } else if (!Services.melt(level, toMelt, state)) {
+            } else if (Services.melt(level, above, stateAbove)) {
 
             } else if (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW) {
                 level.setBlockAndUpdate(toMelt, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
+            } else if (Services.melt(level, toMelt, state)) {
+
             }
         }
     }

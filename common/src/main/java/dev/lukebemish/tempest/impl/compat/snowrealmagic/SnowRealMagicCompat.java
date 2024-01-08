@@ -36,7 +36,6 @@ public class SnowRealMagicCompat implements Services.CompatProvider {
                         level.setBlockAndUpdate(mutablePos, newState);
                         return true;
                     }
-                    break;
                 }
                 mutablePos.move(Direction.DOWN);
                 state = level.getBlockState(mutablePos);
