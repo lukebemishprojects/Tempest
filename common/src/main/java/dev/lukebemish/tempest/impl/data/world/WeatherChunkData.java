@@ -350,6 +350,7 @@ public class WeatherChunkData {
             if (!canSeeWindSnow(above)) {
                 above.setY(above.getY() + 1);
                 if (level.random.nextBoolean() || !canSeeWindSnow(above)) {
+                    above.setY(above.getY() + 1);
                     if (level.random.nextBoolean() || !canSeeWindSnow(above)) {
                         return false;
                     }
