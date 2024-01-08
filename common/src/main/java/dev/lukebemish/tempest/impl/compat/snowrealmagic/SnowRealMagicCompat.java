@@ -29,6 +29,7 @@ public class SnowRealMagicCompat implements Services.CompatProvider {
             Block snowVariant = original.getBlock();
             if (SnowRealMagicPlatform.INSTANCE.isVariant(snowVariant)) {
                 try {
+                    // TODO: fix melting further stuff down
                     BlockState newState = SnowRealMagicPlatform.INSTANCE.decreaseLayer(snowVariant, original, level, pos, false);
                     if (newState != original) {
                         level.setBlockAndUpdate(pos, newState);
