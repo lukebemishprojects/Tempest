@@ -2,6 +2,7 @@ package dev.lukebemish.tempest.impl.data.world;
 
 import dev.lukebemish.tempest.api.WeatherStatus;
 import dev.lukebemish.tempest.impl.Constants;
+import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.WeatherCategory;
 import dev.lukebemish.tempest.impl.data.WeatherMapData;
 import dev.lukebemish.tempest.impl.util.QuasiRandomChunkVisitor;
@@ -408,41 +409,41 @@ public class WeatherChunkData {
                         return level.random.nextFloat() < precip;
                     } else if (isSnowing(temp, precip, thunder)) {
                         BlockPos toSnow = toFreeze.above();
-                        var state = level.getBlockState(toSnow);
-                        if (state.getBlock() == Blocks.SNOW) {
-                            int levels = state.getValue(SnowLayerBlock.LAYERS);
-                            BlockState newState;
-                            if (levels < 7) {
-                                newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
-                            } else {
-                                if (level.random.nextFloat() < 0.75f) {
-                                    newState = Blocks.SNOW_BLOCK.defaultBlockState();
-                                } else {
-                                    newState = Blocks.POWDER_SNOW.defaultBlockState();
-                                }
-                            }
-                            level.setBlockAndUpdate(toSnow, newState);
-                            Block.pushEntitiesUp(state, newState, level, toSnow);
-                        } else if (state.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow)) {
-                            if (hasSpaceForSnow(level, toSnow)) {
-                                level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
-                            }
-                        } else if (state.getBlock() == Blocks.POWDER_SNOW) {
-                            BlockPos aboveSnow = toSnow.above();
-                            BlockState upState = level.getBlockState(aboveSnow);
-                            level.setBlockAndUpdate(toSnow, Blocks.SNOW_BLOCK.defaultBlockState());
-                            if (upState.canBeReplaced() && Blocks.SNOW.defaultBlockState().canSurvive(level, aboveSnow)) {
-                                if (hasSpaceForSnow(level, aboveSnow)) {
-                                    level.setBlockAndUpdate(aboveSnow, Blocks.SNOW.defaultBlockState());
-                                }
-                            }
-                        }
+                        processSnow(level, toSnow);
                         return level.random.nextFloat() < precip;
                     }
                 }
             }
         }
         return level.random.nextFloat() < (level.random.nextBoolean() ? -temp : precip);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    private static void processSnow(ServerLevel level, BlockPos toSnow) {
+        var state = level.getBlockState(toSnow);
+        if (state.getBlock() == Blocks.SNOW) {
+            int levels = state.getValue(SnowLayerBlock.LAYERS);
+            BlockState newState;
+            if (levels < 7) {
+                newState = state.setValue(SnowLayerBlock.LAYERS, levels + 1);
+            } else {
+                if (level.random.nextFloat() < 0.75f) {
+                    newState = Blocks.SNOW_BLOCK.defaultBlockState();
+                } else {
+                    newState = Blocks.POWDER_SNOW.defaultBlockState();
+                }
+            }
+            level.setBlockAndUpdate(toSnow, newState);
+            Block.pushEntitiesUp(state, newState, level, toSnow);
+        } else if (hasSpaceForSnow(level, toSnow) && Services.snow(level, toSnow, state)) {
+
+        } else if (hasSpaceForSnow(level, toSnow) && Blocks.SNOW.defaultBlockState().canSurvive(level, toSnow) && state.canBeReplaced()) {
+            level.setBlockAndUpdate(toSnow, Blocks.SNOW.defaultBlockState());
+        } else if (state.getBlock() == Blocks.POWDER_SNOW) {
+            BlockPos aboveSnow = toSnow.above();
+            level.setBlockAndUpdate(toSnow, Blocks.SNOW_BLOCK.defaultBlockState());
+            processSnow(level, aboveSnow);
+        }
     }
 
     public boolean canSeeWindSnow(BlockPos pos) {
@@ -544,6 +545,7 @@ public class WeatherChunkData {
         return assembler.assemble(kind, Mth.sqrt(Mth.clamp(precip, 0, 1)), temp, thunder > 0f, new Vec2(windX, windZ));
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     private void tryMeltBlock(ServerLevel level, BlockPos toMelt) {
         if (validBlock(level, toMelt)) {
             var state = level.getBlockState(toMelt);
@@ -576,7 +578,9 @@ public class WeatherChunkData {
 
             var above = toMelt.above();
             var stateAbove = level.getBlockState(above);
-            if (stateAbove.getBlock() == Blocks.SNOW) {
+            if (Services.melt(level, above, stateAbove)) {
+
+            } else if (stateAbove.getBlock() == Blocks.SNOW) {
                 int levels = stateAbove.getValue(SnowLayerBlock.LAYERS);
                 if (levels > 1) {
                     var newState = stateAbove.setValue(SnowLayerBlock.LAYERS, levels - 1);
@@ -586,6 +590,8 @@ public class WeatherChunkData {
                 }
             } else if (stateAbove.getBlock() == Blocks.POWDER_SNOW) {
                 level.setBlockAndUpdate(above, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
+            } else if (!Services.melt(level, toMelt, state)) {
+
             } else if (state.getBlock() == Blocks.SNOW_BLOCK || state.getBlock() == Blocks.POWDER_SNOW) {
                 level.setBlockAndUpdate(toMelt, Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 7));
             }

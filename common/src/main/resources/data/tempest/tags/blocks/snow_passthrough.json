@@ -2,6 +2,14 @@
   "values": [
     "minecraft:powder_snow",
     "minecraft:snow_block",
-    "minecraft:snow"
+    "minecraft:snow",
+    {
+      "id": "#minecraft:snow",
+      "required": false
+    },
+    {
+      "id": "#snowrealmagic:snowy_setting",
+      "required": false
+    }
   ]
 }

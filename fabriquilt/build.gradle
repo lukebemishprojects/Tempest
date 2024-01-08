@@ -43,7 +43,8 @@ dependencies {
 
     // Compat
 
-    modLocalRuntime libs.snowrealmagic.fabric
+    modCompileOnly libs.snowrealmagic.fabric
+    modCompileOnly libs.kiwi.fabric
 }
 
 // Publishing

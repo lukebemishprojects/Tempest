@@ -50,7 +50,7 @@ dependencies {
     modCompileOnly libs.embeddium
     //modLocalRuntime libs.embeddium
 
-    modLocalRuntime libs.snowrealmagic.forge
+    modCompileOnly libs.snowrealmagic.forge
 }
 
 // Publishing

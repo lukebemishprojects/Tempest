@@ -33,7 +33,12 @@ dependencies {
     minecraft libs.minecraft
     modImplementation libs.fabric.loader
 
+    compileOnly libs.autoservice
+    annotationProcessor libs.autoservice
+
     implementation libs.mixinextras.common
+
+    modCompileOnly libs.snowrealmagic.fabric
 }
 
 artifacts {

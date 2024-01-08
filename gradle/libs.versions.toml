@@ -28,6 +28,7 @@ cca = "5.2.2"
 embeddium = "0.2.12-git.170afb8+mc1.20.1"
 snowrealmagic_forge = "S9gp2AyE"
 snowrealmagic_fabric = "eNt5cULd"
+kiwi_fabric = "kyG6D8vz"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -51,6 +52,7 @@ cca-chunk = { module = "dev.onyxstudios.cardinal-components-api:cardinal-compone
 embeddium = { module = "org.embeddedt:embeddium-1.20.1", version.ref = "embeddium" }
 snowrealmagic_forge = { module = "maven.modrinth:snow-real-magic", version.ref = "snowrealmagic_forge" }
 snowrealmagic_fabric = { module = "maven.modrinth:snow-real-magic", version.ref = "snowrealmagic_fabric" }
+kiwi_fabric = { module = "maven.modrinth:kiwi", version.ref = "kiwi_fabric" }
 
 [plugins]
 
