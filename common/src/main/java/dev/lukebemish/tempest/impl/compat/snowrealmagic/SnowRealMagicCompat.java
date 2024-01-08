@@ -26,18 +26,20 @@ public class SnowRealMagicCompat implements Services.CompatProvider {
     @Override
     public Services.@Nullable Melter melter() {
         return (level, pos, original) -> {
-            Block snowVariant = original.getBlock();
-            if (SnowRealMagicPlatform.INSTANCE.isVariant(snowVariant)) {
-                try {
-                    // TODO: fix melting further stuff down
-                    BlockState newState = SnowRealMagicPlatform.INSTANCE.decreaseLayer(snowVariant, original, level, pos, false);
-                    if (newState != original) {
-                        level.setBlockAndUpdate(pos, newState);
+            var mutablePos = pos.mutable();
+            var state = original;
+            for (int i = 0; i < 16; i++) {
+                Block snowVariant = state.getBlock();
+                if (SnowRealMagicPlatform.INSTANCE.isVariant(snowVariant)) {
+                    BlockState newState = SnowRealMagicPlatform.INSTANCE.decreaseLayer(snowVariant, state, level, mutablePos, false);
+                    if (newState != state) {
+                        level.setBlockAndUpdate(mutablePos, newState);
                         return true;
                     }
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    break;
                 }
+                mutablePos.move(Direction.DOWN);
+                state = level.getBlockState(mutablePos);
             }
             return false;
         };
