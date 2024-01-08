@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,44 +50,39 @@ public final class Services {
         var snowers = new ArrayList<Snower>();
         for (var provider : ServiceLoader.load(CompatProvider.class)) {
             if (provider.shouldLoad()) {
-                var melter = provider.melter();
-                if (melter != null) {
-                    melters.add(new Melter() {
-                        boolean valid = true;
+                var compat = provider.compat();
+                melters.add(new Melter() {
+                    boolean valid = true;
 
-                        @Override
-                        public boolean melt(ServerLevel level, BlockPos pos, BlockState original) {
-                            if (valid) {
-                                try {
-                                    return melter.melt(level, pos, original);
-                                } catch (Throwable t) {
-                                    valid = false;
-                                    Constants.LOGGER.error("Failed to melt block at {} with provider {}", pos, provider.getClass().getName(), t);
-                                }
+                    @Override
+                    public boolean melt(ServerLevel level, BlockPos pos, BlockState original) {
+                        if (valid) {
+                            try {
+                                return compat.melt(level, pos, original);
+                            } catch (Throwable t) {
+                                valid = false;
+                                Constants.LOGGER.error("Failed to melt block at {} with provider {}", pos, provider.getClass().getName(), t);
                             }
-                            return false;
                         }
-                    });
-                }
-                var snower = provider.snower();
-                if (snower != null) {
-                    snowers.add(new Snower() {
-                        boolean valid = true;
+                        return false;
+                    }
+                });
+                snowers.add(new Snower() {
+                    boolean valid = true;
 
-                        @Override
-                        public boolean snow(ServerLevel level, BlockPos pos, BlockState original) {
-                            if (valid) {
-                                try {
-                                    return snower.snow(level, pos, original);
-                                } catch (Throwable t) {
-                                    valid = false;
-                                    Constants.LOGGER.error("Failed to snow block at {} with provider {}", pos, provider.getClass().getName(), t);
-                                }
+                    @Override
+                    public boolean snow(ServerLevel level, BlockPos pos, BlockState original) {
+                        if (valid) {
+                            try {
+                                return compat.snow(level, pos, original);
+                            } catch (Throwable t) {
+                                valid = false;
+                                Constants.LOGGER.error("Failed to snow block at {} with provider {}", pos, provider.getClass().getName(), t);
                             }
-                            return false;
                         }
-                    });
-                }
+                        return false;
+                    }
+                });
             }
         }
         MELTERS = List.copyOf(melters);
@@ -103,18 +97,22 @@ public final class Services {
     }
 
     @FunctionalInterface
-    public interface Melter {
+    private interface Melter {
         boolean melt(ServerLevel level, BlockPos pos, BlockState original);
     }
 
     @FunctionalInterface
-    public interface Snower {
+    private interface Snower {
+        boolean snow(ServerLevel level, BlockPos pos, BlockState original);
+    }
+
+    public interface Compat {
+        boolean melt(ServerLevel level, BlockPos pos, BlockState original);
         boolean snow(ServerLevel level, BlockPos pos, BlockState original);
     }
 
     public interface CompatProvider {
-        @Nullable Melter melter();
-        @Nullable Snower snower();
+        Compat compat();
 
         boolean shouldLoad();
     }
