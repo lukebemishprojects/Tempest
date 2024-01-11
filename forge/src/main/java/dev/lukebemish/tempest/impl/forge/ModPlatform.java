@@ -25,7 +25,7 @@ public final class ModPlatform implements Services.Platform {
     public static final Capability<WeatherChunkData> WEATHER_CHUNK_DATA = CapabilityManager.get(new CapabilityToken<>(){});
     public static final ResourceLocation WEATHER_CHUNK_DATA_LOCATION = Constants.id("weather_status");
 
-    private static final Map<Pair<String, ResourceKey<? extends Registry<?>>>, DeferredRegister<?>> REGISTRIES = new HashMap<>();
+    static final Map<Pair<String, ResourceKey<? extends Registry<?>>>, DeferredRegister<?>> REGISTRIES = new HashMap<>();
 
     @Override
     public WeatherChunkData getChunkData(LevelChunk chunk) {

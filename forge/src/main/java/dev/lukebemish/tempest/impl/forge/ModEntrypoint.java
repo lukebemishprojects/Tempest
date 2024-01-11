@@ -44,6 +44,10 @@ public final class ModEntrypoint {
         if (ModList.get().isLoaded("embeddium")) {
             EmbeddiumCompat.addCompat(modBus);
         }
+
+        for (var registry : ModPlatform.REGISTRIES.values()) {
+            registry.register(modBus);
+        }
     }
 
     private void onChunkSend(ChunkWatchEvent.Watch event) {
