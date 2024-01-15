@@ -5,7 +5,7 @@ parchment_mappings = "2023.08.20"
 
 forge = "1.20.1-47.1.3"
 
-fabric_loader = "0.15.2"
+fabric_loader = "0.15.4"
 fabric_api = "0.91.0+1.20.1"
 
 mdg_plugin = "1.4.3"
