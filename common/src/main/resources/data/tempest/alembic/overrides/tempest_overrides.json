@@ -1,0 +1,9 @@
+{
+  "priority": 1,
+  "source_overrides": {
+    "tempest:hail": {
+      "physical_damage": 0.80,
+      "true_damage": 0.20
+    }
+  }
+}

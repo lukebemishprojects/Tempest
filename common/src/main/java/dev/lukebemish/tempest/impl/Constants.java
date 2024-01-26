@@ -25,7 +25,7 @@ public final class Constants {
     public static final TagKey<Block> SAFE_WITH_HAIL = TagKey.create(Registries.BLOCK, id("safe_with_hail"));
     public static final TagKey<Block> SNOW_PASSTHROUGH = TagKey.create(Registries.BLOCK, id("snow_passthrough"));
     public static final TagKey<EntityType<?>> DAMAGED_BY_HAIL = TagKey.create(Registries.ENTITY_TYPE, id("damaged_by_hail"));
-    public static final TagKey<EntityType<?>> IMMUNE_TO_HAIL = TagKey.create(Registries.ENTITY_TYPE, id("damaged_by_hail"));
+    public static final TagKey<EntityType<?>> IMMUNE_TO_HAIL = TagKey.create(Registries.ENTITY_TYPE, id("immune_to_hail"));
 
     public static final ResourceKey<DamageType> HAIL_DAMAGE_TYPE = ResourceKey.create(Registries.DAMAGE_TYPE, id("hail"));
 

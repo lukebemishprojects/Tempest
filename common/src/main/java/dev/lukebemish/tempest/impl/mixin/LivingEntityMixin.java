@@ -7,6 +7,7 @@ import dev.lukebemish.tempest.impl.Services;
 import dev.lukebemish.tempest.impl.data.WeatherCategory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -80,9 +81,9 @@ public abstract class LivingEntityMixin extends Entity {
                 if (!this.level().isClientSide()) {
                     if ((this.tickCount & 8) == 0 && status != null && status.category == WeatherCategory.HAIL) {
                         var source = new DamageSource(this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Constants.HAIL_DAMAGE_TYPE));
-                        if (this.getType().is(Constants.DAMAGED_BY_HAIL)) {
+                        if (this.getType().is(Constants.DAMAGED_BY_HAIL) || this.getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES)) {
                             this.hurt(source, status.intensity / 3);
-                        } else if (!this.getType().is(Constants.IMMUNE_TO_HAIL)) {
+                        } else if (!this.getType().is(Constants.IMMUNE_TO_HAIL) && !this.getType().is(EntityTypeTags.FREEZE_IMMUNE_ENTITY_TYPES)) {
                             this.hurt(source, 0);
                         }
                     }
